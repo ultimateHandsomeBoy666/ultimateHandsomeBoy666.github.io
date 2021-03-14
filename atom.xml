@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ultimateHandsomeBoy666.github.io/</id>
     <title>牛蛙的博客</title>
-    <updated>2021-03-14T19:38:23.511Z</updated>
+    <updated>2021-03-14T19:42:31.703Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ultimateHandsomeBoy666.github.io/"/>
     <link rel="self" href="https://ultimateHandsomeBoy666.github.io/atom.xml"/>
@@ -18,7 +18,7 @@
         <updated>2021-03-14T10:25:14.000Z</updated>
         <content type="html"><![CDATA[<h3 id="一-什么是嵌套滑动">一、什么是嵌套滑动</h3>
 <p>嵌套滑动是 android 开发中常见的一种 UI 效果。当一个布局中包含多个可以滑动的 View，并且这些 View 互相嵌套的时候，就需要做嵌套滑动的处理来让 UI 交互有更流畅的效果，比如吸顶效果。常见的效果如下：</p>
-<img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/fbee9045194e4b09a0fd92554693c80c~tplv-k3u1fbpfcp-watermark.image" alt="1615737449263149" height="240px" width="120px"/>
+<img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/fbee9045194e4b09a0fd92554693c80c~tplv-k3u1fbpfcp-watermark.image" alt="1615737449263149" height="280px" width="120px"/>
 <p>如上所示，最外层的父布局可以滑动，内层的 RecyclerView 也可以滑动。当上滑 RecyclerView 的时候，最外层的父布局先上滑，直到上滑到 tab 的时候，这时候 RecyclerView 开始滑动，父布局停止滑动，并且手指不需要离开屏幕，可以一次性完成整个操作。这样就达到了内外布局连贯滑动的效果，并且达到了 tab 吸顶的效果。</p>
 <h3 id="二-滑动嵌套解决方案">二、滑动嵌套解决方案</h3>
 <p>那么如何才能做到这样的连贯的嵌套滑动呢？</p>
@@ -92,7 +92,7 @@
 &lt;/androidx.coordinatorlayout.widget.CoordinatorLayout&gt;
 </code></pre>
 <p>将 <code>AppBarLayout</code> 中需要上滑隐藏的部分的 <code>scrollFlag</code>指定为 <code>scroll</code> ，在RecyclerView 中指定 <code>behavior</code> 为 <code>appbar_scrolling_view_behavior</code> 就可以实现最简单的吸顶嵌套滑动，如下：</p>
-<img src="https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/eb76cc0af0dd48769b24d6c2f8ec3342~tplv-k3u1fbpfcp-watermark.image" alt="1615743833115315" height="240px" width="120px" />
+<img src="https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/eb76cc0af0dd48769b24d6c2f8ec3342~tplv-k3u1fbpfcp-watermark.image" alt="1615743833115315" height="280px" width="120px" />
 <p>看起来像带有 header 的 RecyclerView 在滑动，但其实是嵌套滑动。</p>
 <p><code>layout_scrollFlags</code> 和 <code>layout_behavior</code> 有很多可选值，配合起来可以实现多种效果，不只限于嵌套滑动。具体可以参考 API 文档。</p>
 <p>使用 <code>CoordinatorLayout</code> 实现嵌套滑动比手动实现要好得多，既可以实现连贯的吸顶嵌套滑动，又支持 fling。而且是官方提供的布局，可以放心使用，出 bug 的几率很小，性能也不会有问题。不过也正是因为官方将其封装得很好，使用 <code>CoordinatorLayout</code> 很难实现比较复杂的嵌套滑动布局，比如多级嵌套滑动。</p>
