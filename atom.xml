@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ultimateHandsomeBoy666.github.io/</id>
     <title>牛蛙的博客</title>
-    <updated>2021-03-14T12:45:49.953Z</updated>
+    <updated>2021-03-14T12:56:15.109Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ultimateHandsomeBoy666.github.io/"/>
     <link rel="self" href="https://ultimateHandsomeBoy666.github.io/atom.xml"/>
@@ -10,6 +10,541 @@
     <logo>https://ultimateHandsomeBoy666.github.io/images/avatar.png</logo>
     <icon>https://ultimateHandsomeBoy666.github.io/favicon.ico</icon>
     <rights>All rights reserved 2021, 牛蛙的博客</rights>
+    <entry>
+        <title type="html"><![CDATA[一文读懂 kotlin 的协变与逆变 -- 从 Java 说起]]></title>
+        <id>https://ultimateHandsomeBoy666.github.io/post/yi-wen-du-dong-kotlin-de-xie-bian-yu-ni-bian-cong-java-shuo-qi/</id>
+        <link href="https://ultimateHandsomeBoy666.github.io/post/yi-wen-du-dong-kotlin-de-xie-bian-yu-ni-bian-cong-java-shuo-qi/">
+        </link>
+        <updated>2021-03-14T12:50:59.000Z</updated>
+        <content type="html"><![CDATA[<h3 id="前言">前言</h3>
+<p>为了更好地理解 kotlin 和 Java 中的协变与逆变，先看一些基础知识。</p>
+<h4 id="普通赋值">普通赋值</h4>
+<p>在 Java 中，常见的赋值语句如下：</p>
+<pre><code class="language-java">A a = b;
+</code></pre>
+<p>赋值语句必须满足的条件是：左边要么是右边的父类，要么和右边类型一样。即 A 的类型要“大于”B 的类型，比如 <code>Object o = new String(&quot;s&quot;);</code> 。为了方便起见，下文中称作 A &gt; B。</p>
+<p>除了上述最常见的赋值语句，还有两种其他的赋值语句：</p>
+<h4 id="函数参数的赋值">函数参数的赋值</h4>
+<pre><code class="language-java">public void fun(A a) {}
+// 调用处赋值
+B b = new B();
+fun(b);
+</code></pre>
+<p>在调用 fun(b) 方法时，会将传入的 B b 实参赋值给形参 A a，即 <code>A a = b</code> 的形式。同样的，必须要满足形参类型大于实参，即 A &gt; B。</p>
+<h4 id="函数返回值的赋值">函数返回值的赋值</h4>
+<pre><code class="language-java">public A fun() {
+    B b = new B();
+    return b;
+} 
+</code></pre>
+<p>函数返回值类型接收实际返回类型的值，实际返回类型 B b 相当于赋值给了函数返回值类型 A a，即 B b 赋值给了 A a, 即 <code>A a = b</code>，那么必须满足 A &gt; B 的类型关系。</p>
+<p>所以，无论哪种赋值，都必须满足左边类型 &gt; 右边类型，即 A &gt; B。</p>
+<h3 id="java-中的协变与逆变">Java 中的协变与逆变</h3>
+<p>有了前面的基础知识，就可以方便地解释协变与逆变了。</p>
+<p>如果类 A &gt; 类 B，经过一个变化 trans 后得到的 trans(A) 与 trans(B) 依旧满足 trans(A) &gt; trans(B)，那么称为<strong>协变</strong>。</p>
+<p>逆变则刚好相反，如果类 A &gt; 类 B，经过一个变化 trans 后得到的 trans(A) 与 trans(B) 满足 trans(B) &gt; trans(A)，称为<strong>逆变</strong>。</p>
+<p>比如大家都知道 Java 的数组是协变的，假如 A &gt; B，那么有 A[] &gt; B[]，所以 B[] 可以赋值给 A[]。举个例子：</p>
+<pre><code class="language-java">Integer[] nums = new Integer[]{};
+Object[] o = nums; // 可以赋值，因为数组的协变特性所以由 Object &gt; Integer 得到 Object[] &gt; Integer[]
+</code></pre>
+<p>但是 Java 的泛型则不满足协变，如下：</p>
+<pre><code class="language-java">List&lt;Integer&gt; l = new ArrayList&lt;&gt;();
+List&lt;Object&gt; o = l;// 这里会报错，不能编译
+</code></pre>
+<p>上述代码报错，就是因为，虽然 Object &gt; Integer，但是由于泛型不满足协变，所以 <code>List&lt;Object&gt;</code> &gt; <code>List&lt;Integer&gt;</code> 是不满足的，既然不满足左边大于右边这个条件，从前言中我们知道，自然就不能将 List&lt;Integer&gt; 赋值给 List&lt;Object&gt;。一般称 Java 泛型不支持型变。</p>
+<h3 id="java-中泛型如何实现协变与逆变">Java 中泛型如何实现协变与逆变</h3>
+<p>从前面我们知道，在 Java 中泛型是不支持型变的，但是这会产生一个让人很奇怪的疑惑，也是很多讲泛型的文章中提到的：</p>
+<p>如果 B 是 A 的子类，那么 List&lt;B&gt; 就应该是 List&lt;A&gt; 的子类呀！这是一个非常自然而然的想法！</p>
+<p>但是很抱歉，由于种种原因，Java 并不支持。但是，Java 并不是完全抹杀了泛型的型变特性，Java 提供了 &lt;? extends T&gt; 和 &lt;? super T&gt; 使泛型拥有协变和逆变的特性。</p>
+<h4 id="extends-t-与-super-t">&lt;? extends T&gt; 与 &lt;? super T&gt;</h4>
+<p>&lt;? extends T&gt; 称为上界通配符，&lt;? super T&gt; 称为下界通配符。使用上界通配符可以使泛型协变，而使用下界通配符可以使泛型逆变。</p>
+<p>比如之前举的例子</p>
+<pre><code class="language-java">List&lt;Integer&gt; l = new ArrayList&lt;&gt;();
+List&lt;Object&gt; o = l;// 这里会报错，不能编译
+</code></pre>
+<p>如果使用上界通配符，</p>
+<pre><code class="language-java">List&lt;Integer&gt; l = new ArrayList&lt;&gt;();
+List&lt;? extends Object&gt; o = l;// 可以通过编译
+</code></pre>
+<p>这样，List&lt;? extends Object&gt; 的类型就大于 List&lt;Integer&gt; 的类型了，也就实现了协变。这也就是所谓的“子类的泛型是泛型的子类”。</p>
+<p>同样，下界通配符 &lt;? super T&gt; 可以实现逆变，如：</p>
+<pre><code class="language-java">public List&lt;? super Integer&gt; fun(){
+    List&lt;Object&gt; l = new ArrayList&lt;&gt;();
+    return l;
+}
+</code></pre>
+<p>上述代码怎么就实现逆变了呢？首先，Object &gt; Integer；另外，从前言我们知道，函数返回值类型必须大于实际返回值类型，在这里就是 <code>List&lt;? super Integer&gt;</code> &gt; <code>List&lt;Object&gt;</code>，和 Object &gt; Integer 刚好相反。也就是说，经过泛型变化后，Object 和 Integer 的类型关系翻转了，这就是逆变，而实现逆变的就是下界通配符 &lt;? super T&gt;。</p>
+<p>从上面可以看出，&lt;? extends T&gt; 中的上界是 T，也就是说 &lt;? extends T&gt; 所泛指的类型都是 T 的子类或 T 本身，所以 T 大于 &lt;? extends T&gt; 。&lt;? super T&gt; 中的下界是 T，也就是说 &lt;? super T&gt; 所泛指的类型都是 T 的父类或 T 本身，所以 &lt;? super T&gt;  大于 T。</p>
+<p>虽然 Java 使用通配符解决了泛型的协变与逆变的问题，但是由于很多讲到泛型的文章都晦涩难懂，曾经让我一度感慨这 tm 到底是什么玩意？直到我在 stackoverflow 上发现了通俗易懂的解释(是的，前文大部分内容都来自于 stackoverflow 中大神的解释)，才终于了然。其实只要抓住<strong>赋值语句左边类型必须大于右边类型</strong>这个关键点一切就都很好懂了。</p>
+<h4 id="pecs">PECS</h4>
+<p>PECS 准则即 Producer Extends Consumer Super，生产者使用上界通配符，消费者使用下界通配符。直接看这句话可能会让人很疑惑，所以我们追本溯源来看看为什么会有这句话。</p>
+<p>首先，我们写一个简单的泛型类：</p>
+<pre><code class="language-java">public class Container&lt;T&gt; {
+    private T item;
+
+    public void set(T t) { 
+        item = t;
+    }
+
+    public T get() {
+        return item;
+    }
+}
+</code></pre>
+<p>然后写出如下代码：</p>
+<pre><code class="language-java">Container&lt;Object&gt; c = new Container&lt;String&gt;(); // (1)编译报错
+
+Container&lt;? extends Object&gt; c = new Container&lt;String&gt;(); // (2)编译通过
+c.set(&quot;sss&quot;); // (3)编译报错
+Object o = c.get();// (4)编译通过
+</code></pre>
+<p>代码 (1)，<code>Container&lt;Object&gt; c = new Container&lt;String&gt;();</code> 编译报错，因为泛型是不型变的，所以 Container&lt;String&gt; 并不是 Container&lt;Object&gt; 的子类型，所以无法赋值。</p>
+<p>代码 (2)，加了上界通配符以后，支持泛型协变，Container&lt;String&gt; 就成了 Container&lt;? extends Object&gt; 的子类型，所以编译通过，可以赋值。</p>
+<p>既然代码 (2) 通过编译，那代码 (3) 为什么会报错呢？因为代码 (3) 尝试把 String 类型赋值给 &lt;? extends Object&gt; 类型。显然，编译器只知道 &lt;? extends Object&gt;  是 Obejct 的某一个子类型，但是具体是哪一个并不知道，也许并不是 String 类型，所以不能直接将 String 类型赋值给它。</p>
+<p>从上面可以看出，对于使用了 &lt;? extends T&gt; 的类型，是不能写入元素的，不然就会像代码 (3) 处一样编译报错。</p>
+<p>但是可以读取元素，比如代码 (4) 。并且该类型只能读取元素，这就是所谓的“生产者”，即<strong>只能从中读取元素的就是生产者</strong>，生产者就使用 &lt;? extends T&gt; 通配符。</p>
+<p>消费者同理，代码如下：</p>
+<pre><code class="language-java">Container&lt;String&gt; c = new Container&lt;Object&gt;(); // (1)编译报错
+
+Container&lt;? super String&gt; c = new Container&lt;Object&gt;(); // (2)编译通过
+ c.set(&quot;sss&quot;);// (3) 编译通过
+ String s = c.get();// (4) 编译报错
+
+</code></pre>
+<p>代码 (1) 编译报错，因为泛型不支持逆变。而且就算不懂泛型，这个代码的形式一眼看起来也是错的。</p>
+<p>代码 (2) 编译通过，因为加了 &lt;? super T&gt; 通配符后，泛型逆变。</p>
+<p>代码 (3) 编译通过，它把 String 类型赋值给 &lt;? super String&gt;，&lt;? super String&gt; 泛指 String 的父类或 String，所以这是可以通过编译的。</p>
+<p>代码 (4) 编译报错，因为它尝试把 &lt;? super String&gt; 赋值给 String，而 &lt;? super String&gt; 大于 String，所以不能赋值。事实上，编译器完全不知道该用什么类型去接受 <code>c.get()</code> 的返回值，因为在编译器眼里 &lt;? super String&gt; 是一个泛指的类型，所有 String 的父类和 String 本身都有可能。</p>
+<p>同样从上面代码可以看出，对于使用了 &lt;? super T&gt; 的类型，是不能读取元素的，不然就会像代码 (4) 处一样编译报错。但是可以写入元素，比如代码 (3)。该类型只能写入元素，这就是所谓的“消费者”，即<strong>只能写入元素的就是消费者</strong>，消费者就使用 &lt;? super T&gt; 通配符。</p>
+<p>综上，这就是 PECS 原则。</p>
+<h3 id="kotlin-中的协变与逆变">kotlin 中的协变与逆变</h3>
+<p>kotlin 抛弃了 Java 中的通配符，转而使用了<strong>声明处型变</strong>与<strong>类型投影</strong>。</p>
+<h4 id="声明处型变">声明处型变</h4>
+<p>首先让我们回头看看 Container 的定义：</p>
+<pre><code class="language-java">public class Container&lt;T&gt; {
+    private T item;
+
+    public void set(T t) { 
+        item = t;
+    }
+
+    public T get() {
+        return item;
+    }
+}
+</code></pre>
+<p>在某些情况下，我们只会使用 <code>Container&lt;? extends T&gt;</code> 或者 <code>Container&lt;? super T&gt;</code> ，意味着我们只使用 Container 作为生产者或者 Container 作为消费者。</p>
+<p>既然如此，那我们为什么要在定义 Container 这个类的时候要把 get 和 set 都定义好呢？试想一下，如果一个类只有消费者的作用，那定义 get 方法完全是多余的。</p>
+<p>反过来说，如果一个泛型类只有生产者方法，比如下面这个例子（来自 kotlin 官方文档）:</p>
+<pre><code class="language-kotlin">// Java
+interface Source&lt;T&gt; {
+  T nextT(); // 只有生产者方法
+}
+// Java
+void demo(Source&lt;String&gt; strs) {
+  Source&lt;Object&gt; objects = strs; // ！！！在 Java 中不允许，要使用上界通配符 &lt;? extends Object&gt;
+  // ……
+}
+</code></pre>
+<p>在 <code>Source&lt;Object&gt;</code> 类型的变量中存储 <code>Source&lt;String&gt;</code> 实例的引用是极为安全的——因为没有消费者-方法可以调用。然而 Java 依然不让我们直接赋值，需要使用上界通配符。</p>
+<p>但是这是毫无意义的，使用通配符只是把类型变得更复杂，并没有带来额外的价值，因为能调用的方法还是只有生产者方法。但 Java 编译器只认死理。</p>
+<p>所以，如果我们能在使用之前确定一个类是生产者还是消费者，那在定义类的时候直接声明它的角色岂不美哉？</p>
+<p>这就是 kotlin 的声明处型变，直接在类声明的时候，定义它的型变行为。</p>
+<p>比如：</p>
+<pre><code class="language-java">class Container&lt;out T&gt; { // (1)
+    private  var item: T? = null 
+        
+    fun get(): T? = item
+}
+
+val c: Container&lt;Any&gt; = Container&lt;String&gt;()// （2）编译通过，因为 T 是一个 out-参数
+</code></pre>
+<p>(1) 处直接使用 &lt;out T&gt; 指定 T 类型只能出现在生产者的位置上。虽然多了一些限制，但是，在 kotlin 编译器在知道了 T 的角色以后，就可以像 (2) 处一样将 Container&lt;String&gt; 直接赋值给 Container&lt;Any&gt;，好像<strong>泛型直接可以协变了一样</strong>，而不需要再使用 Java 当中的通配符 &lt;? extends String&gt;。</p>
+<p>同样的，对于消费者来说，</p>
+<pre><code class="language-kotlin">class Container&lt;in T&gt; { // (1) 
+    private  var item: T? = null 
+     fun set(t: T) {
+        item = t
+    }
+}
+
+val c: Container&lt;String&gt; = Container&lt;Any&gt;() // (2) 编译通过,因为 T 是一个 in-参数
+</code></pre>
+<p>代码 (1) 处使用 &lt;in T&gt; 指定 T 类型只能出现在消费者的位置上。代码 (2) 可以编译通过， Any &gt; String，但是 Container&lt;String&gt; 可以被 Container&lt;Any&gt; 赋值，意味着 Container&lt;String&gt; 大于 Container&lt;Any&gt; ，即它看上去就像 <strong>T 直接实现了泛型逆变</strong>，而不需要借助 &lt;? super String&gt; 通配符来实现逆变。如果是 Java 代码，则需要写成 <code>Container&lt;? super String&gt; c = new Container&lt;Object&gt;();</code>。</p>
+<p>这就是<strong>声明处型变</strong>，在类声明的时候使用 out 和 in 关键字，在使用时可以直接写出泛型型变的代码。</p>
+<p>而 Java 在使用时必须借助通配符才能实现泛型型变，这是<strong>使用处型变</strong>。</p>
+<h4 id="类型投影">类型投影</h4>
+<p>有时一个类既可以作生产者又可以作消费者，这种情况下，我们不能直接在 T 前面加 in 或者 out 关键字。比如：</p>
+<pre><code class="language-kotlin">class Container&lt;T&gt; {
+    private  var item: T? = null
+    
+    fun set(t: T？) {
+        item = t
+    }
+
+    fun get(): T? = item
+}
+</code></pre>
+<p>考虑这个函数：</p>
+<pre><code class="language-kotlin">fun copy(from: Container&lt;Any&gt;, to: Container&lt;Any&gt;) {
+    to.set(from.get())
+}
+</code></pre>
+<p>当我们实际使用该函数时：</p>
+<pre><code class="language-kotlin">val from = Container&lt;Int&gt;()
+val to = Container&lt;Any&gt;()
+copy(from, to) // 报错，from 是 Container&lt;Int&gt; 类型，而 to 是 Container&lt;Any&gt; 类型
+</code></pre>
+<figure data-type="image" tabindex="1"><img src="https://ultimateHandsomeBoy666.github.io//post-images/1615726536879.png" alt="" loading="lazy"></figure>
+<p>这样使用的话，编译器报错，因为我们把两个不一样的类型做了赋值。用 kotlin 官方文档的话说，copy 函数在”干坏事“， 它尝试<strong>写</strong>一个 Any 类型的值给 to， 而我们用 Int 类型来接收这个值，如果编译器不报错，那么运行时将会抛出一个 <code>ClassCastException</code> 异常。</p>
+<p>所以应该怎么办？直接防止 from 被写入就可以了！</p>
+<p>将 copy 函数改为如下所示：</p>
+<pre><code class="language-kotlin">fun copy(from: Container&lt;out Any&gt;, to: Container&lt;Any&gt;) { // 给 from 的类型加了 out
+    to.set(from.get())
+}
+val from = Container&lt;Int&gt;()
+val to = Container&lt;Any&gt;()
+copy(from, to) // 不会再报错了
+</code></pre>
+<p>这就是<strong>类型投影</strong>：from 是一个受限制的（<strong>投影的</strong>）Container 类，我们只能把它当作生产者来使用，它只能调用 get() 方法。</p>
+<p>同理，如果 from 的泛型是用 in 来修饰的话，则 from 只能被当作消费者使用，它只能调用 set() 方法，上述代码就会报错：</p>
+<pre><code class="language-kotlin">fun copy(from: Container&lt;in Any&gt;, to: Container&lt;Any&gt;) { // 给 from 的类型加了 in
+    to.set(from.get())
+}
+val from = Container&lt;Int&gt;()
+val to = Container&lt;Any&gt;()
+copy(from, to) //  报错
+</code></pre>
+<figure data-type="image" tabindex="2"><img src="https://ultimateHandsomeBoy666.github.io//post-images/1615726448076.png" alt="" loading="lazy"></figure>
+<p>其实从上面可以看到，类型投影和 Java 的通配符很相似，也是一种<strong>使用时型变</strong>。</p>
+<h3 id="为什么要这么设计">为什么要这么设计？</h3>
+<p>为什么 Java 的数组是默认型变的，而泛型默认不型变呢？其实 kolin 的泛型默认也是不型变的，只是使用 out 和 in 关键字让它看起来像泛型型变。</p>
+<p>为什么这么设计呢？为什么不默认泛型可型变呢？</p>
+<p>在 stackoverflow 上找到了答案，参考：https://stackoverflow.com/questions/18666710/why-are-arrays-covariant-but-generics-are-invariant</p>
+<blockquote>
+<p>Java 和 C# 早期都是没有泛型特性的。</p>
+<p>但是为了支持程序的多态性，于是将数组设计成了协变的。因为数组的很多方法应该可以适用于所有类型元素的数组。</p>
+<p>比如下面两个方法：</p>
+<pre><code class="language-java">boolean equalArrays (Object[] a1, Object[] a2);
+void shuffleArray(Object[] a);
+</code></pre>
+<p>第一个是比较数组是否相等；第二个是打乱数组顺序。</p>
+<p>语言的设计者们希望这些方法对于任何类型元素的数组都可以调用，比如我可以调用 shuffleArray(String[] s) 来把字符串数组的顺序打乱。</p>
+<p>出于这样的考虑，在 Java 和 C# 中，数组设计成了协变的。</p>
+<p>然而，对于泛型来说，却有以下问题：</p>
+<pre><code class="language-java">// Illegal code - because otherwise life would be Bad
+List&lt;Dog&gt; dogs = new List&lt;Dog&gt;();
+List&lt;Animal&gt; animals = dogs; // Awooga awooga
+animals.add(new Cat());// (1)
+Dog dog = dogs.get(0); //(2) This should be safe, right?
+</code></pre>
+<p>如果上述代码可以通过编译，即 List&lt;Dog&gt; 可以赋值给 List&lt;Animal&gt;，List 是协变的。接下来往 List&lt;Dog&gt; 中 add 一个 Cat()，如代码 (1) 处。这样就有可能造成代码 (2) 处的接收者 <code>Dog dog</code> 和 <code>dogs.get(0)</code> 的类型不匹配的问题。会引发运行时的异常。所以 Java 在编译期就要阻止这种行为，把泛型设计为默认不型变的。</p>
+</blockquote>
+<h3 id="总结">总结</h3>
+<p>1、Java 泛型默认不型变，所以 List&lt;String&gt; 不是 List&lt;Object&gt; 的子类。如果要实现泛型型变，则需要 &lt;? extends T&gt; 与 &lt;? super T&gt; 通配符，这是一种使用处型变的方法。使用 &lt;? extends T&gt; 通配符意味着该类是生产者，只能调用 get(): T 之类的方法。而使用 &lt;? super T&gt; 通配符意味着该类是消费者，只能调用 set(T t)、add(T t) 之类的方法。</p>
+<p>2、Kotlin 泛型其实默认也是不型变的，只不过使用 out 和 in 关键字在类声明处型变，可以达到在使用处看起来像直接型变的效果。但是这样会限制类在声明时只能要么作为生产者，要么作为消费者。</p>
+<p>使用类型投影可以避免类在声明时被限制，但是在使用时要使用 out 和 in 关键字指明这个时刻类所充当的角色是消费者还是生产者。类型投影也是一种使用处型变的方法。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[二叉树的最近公共祖先]]></title>
+        <id>https://ultimateHandsomeBoy666.github.io/post/er-cha-shu-de-zui-jin-gong-gong-zu-xian/</id>
+        <link href="https://ultimateHandsomeBoy666.github.io/post/er-cha-shu-de-zui-jin-gong-gong-zu-xian/">
+        </link>
+        <updated>2021-03-14T12:49:20.000Z</updated>
+        <content type="html"><![CDATA[<p>该题来自 leetcode 236， https://leetcode-cn.com/problems/lowest-common-ancestor-of-a-binary-tree/</p>
+<h3 id="题目">题目</h3>
+<p>给定一个二叉树, 找到该树中两个指定节点 p、q 的最近公共祖先。</p>
+<h3 id="分析">分析</h3>
+<p>首先设 p、q 的最近公共祖先为 root。这个题目最关键的地方在于理解以下两点：</p>
+<blockquote>
+<ul>
+<li>要么 p，q 两个节点只在 root 的一个子树上，此时 root 必然就是 p、q 中深度小的那个，即 root == p || root == q</li>
+<li>要么 p，q 两个节点分别在 root 的两个子树上</li>
+</ul>
+</blockquote>
+<p>下面先来证明第一点：</p>
+<blockquote>
+<p>p，q 两个节点只在最近公共祖先 root 的一个子树上，此时 root 必然就是 p、q 中深度小的那个，即 root == p || root == q</p>
+</blockquote>
+<p>使用反证法。<br>
+假设 p，q 两个节点只在最近公共祖先 root 的一个子树上，且 root != p &amp;&amp; root != q，如下图：<br>
+<img src="https://ultimateHandsomeBoy666.github.io//post-images/1615726225557.png" alt="" loading="lazy"><br>
+很明显，此时 p、q 的最近公共祖先为 root'，而非 root。并且 p、q 也分别 root' 的两个子树上。这与 <strong>root 是最近公共祖先</strong>，以及，<strong>p、q 同在 root' 的一个子树上</strong>的假设矛盾。</p>
+<p>第二点则非常容易理解，如果 p、q 不同在 root 的一个子树上，则必然分别在两个子树上。</p>
+<p>理解了这两点有什么用呢？<br>
+这两点可以有下面的推论：</p>
+<blockquote>
+<ul>
+<li>假设 root 为 p、q 的任一公共父节点，如果 p 、q 分别在 root 的左右子树上，则 root 必为 p、q 最近公共祖先。（可由上述第一点反证推出）</li>
+<li>对于 p、q 的所有公共父节点， 如果 p、q 均不分别在其左右子树，而是同在其一颗子树上，则 p、q 的最近公共节点一定是 p、q 中深度较小的那个。</li>
+</ul>
+</blockquote>
+<p>记住了上面这两点，就可以写出非常简洁的递归代码：</p>
+<pre><code class="language-java">/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode(int x) { val = x; }
+ * }
+ */
+class Solution {
+    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+        if (root == null || root == p || root == q) return root;// 保证遍历完所有可能的 p、q 公共父节点
+        TreeNode left = lowestCommonAncestor(root.left, p, q); // 如果 left != null，则 p 或 q 在 root 的左子树中
+        TreeNode right = lowestCommonAncestor(root.right, p, q); // // 如果 right != null，则 p 或 q 在 root 的右子树中
+        if (left != null &amp;&amp; right != null) return root; // 如果 left != null &amp;&amp; right!= null，则对应推论第一点
+        return left != null ? left : right; // 在遍历完所有可能的父节点后，p、q 均不分在父节点的左右两侧，对应推论第二点
+    }
+}
+</code></pre>
+<p>参考：<br>
+https://leetcode-cn.com/problems/lowest-common-ancestor-of-a-binary-tree/solution/236-er-cha-shu-de-zui-jin-gong-gong-zu-xian-jian-j/</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Kotlin 中的 data class 和 sealed class]]></title>
+        <id>https://ultimateHandsomeBoy666.github.io/post/kotlin-zhong-de-data-class-he-sealed-class/</id>
+        <link href="https://ultimateHandsomeBoy666.github.io/post/kotlin-zhong-de-data-class-he-sealed-class/">
+        </link>
+        <updated>2021-03-14T12:47:10.000Z</updated>
+        <content type="html"><![CDATA[<h2 id="kotlin-中的-data-class">Kotlin 中的 data class</h2>
+<p>在使用 java 的时候，我们经常会重写类的 <code>equals</code> 、<code>hashCode</code> 和 <code>toString</code> 方法。这些方法往往都是模板化的。在 kotlin 中提供了更为简便的方法让我们使用一行代码搞定这些工作。这就是 <code>data class</code>。</p>
+<pre><code class="language-kotlin">// 定义一个 Person 类
+data class Person(val name: String, val age: Int) {
+}
+</code></pre>
+<p>写好上面的代码之后，<code>Person</code> 类中的上述几个方法的重写就由 kotlin 帮我们自动完成了。运行下面的代码</p>
+<pre><code class="language-kotlin">fun main() {
+    val p1 = Person(&quot;Jack&quot;, 24)
+    val p2 = Person(&quot;Jack&quot;, 24)
+
+    val p3 = Person(&quot;Jack&quot;, 32)
+    val p4 = Person(&quot;Rose&quot;, 31)
+
+    println(p1 == p2) 
+
+    println(p1 === p2)
+
+    println(p1 == p3)
+
+    println(&quot;&quot;&quot;
+        p1 hashCode = ${p1.hashCode()}
+        p2 hashCode = ${p2.hashCode()}
+        p3 hashCode = ${p3.hashCode()}
+        p4 hashCode = ${p4.hashCode()}
+    &quot;&quot;&quot;.trimIndent())
+    
+    println(&quot;p1 = $p1&quot;)
+}
+
+</code></pre>
+<p>结果如下：</p>
+<pre><code>true
+false
+false
+p1 hashCode = 71328761
+p2 hashCode = 71328761
+p3 hashCode = 71328769
+p4 hashCode = 79149200
+p1 = Person(name=Jack, age=24)
+</code></pre>
+<p>可以看到<code>equals</code> 、<code>hashCode</code> 和 <code>toString</code> 方法可以直接调用，并且已经被覆写了。</p>
+<h2 id="data-class-究竟做了什么">data class 究竟做了什么？</h2>
+<p><code>data class</code> 是如何做到上述实现的呢？查看 <code>Person</code> 类的字节码反编译得到的 java 代码，如下</p>
+<pre><code class="language-java">public final class Person {
+   @NotNull
+   private final String name;
+   private final int age;
+
+   @NotNull
+   public final String getName() {
+      return this.name;
+   }
+
+   public final int getAge() {
+      return this.age;
+   }
+
+   public Person(@NotNull String name, int age) {
+      Intrinsics.checkParameterIsNotNull(name, &quot;name&quot;);
+      super();
+      this.name = name;
+      this.age = age;
+   }
+
+   @NotNull
+   public final String component1() {
+      return this.name;
+   }
+
+   public final int component2() {
+      return this.age;
+   }
+
+   @NotNull
+   public final Person copy(@NotNull String name, int age) {
+      Intrinsics.checkParameterIsNotNull(name, &quot;name&quot;);
+      return new Person(name, age);
+   }
+
+   // $FF: synthetic method
+   public static Person copy$default(Person var0, String var1, int var2, int var3, Object var4) {
+      if ((var3 &amp; 1) != 0) {
+         var1 = var0.name;
+      }
+
+      if ((var3 &amp; 2) != 0) {
+         var2 = var0.age;
+      }
+
+      return var0.copy(var1, var2);
+   }
+
+   @NotNull
+   public String toString() {
+      return &quot;Person(name=&quot; + this.name + &quot;, age=&quot; + this.age + &quot;)&quot;;
+   }
+
+   public int hashCode() {
+      String var10000 = this.name;
+      return (var10000 != null ? var10000.hashCode() : 0) * 31 + this.age;
+   }
+
+   public boolean equals(@Nullable Object var1) {
+      if (this != var1) {
+         if (var1 instanceof Person) {
+            Person var2 = (Person)var1;
+            if (Intrinsics.areEqual(this.name, var2.name) &amp;&amp; this.age == var2.age) {
+               return true;
+            }
+         }
+
+         return false;
+      } else {
+         return true;
+      }
+   }
+}
+</code></pre>
+<p>从上面可以一目了然地看见 kotlin 是如何构造 data class 的。由于我定义的成员变量是 <code>val</code> 不可变类型的，所以没有 Getter 和 Setter。</p>
+<ul>
+<li>
+<p>对于<code>equals</code> 方法，对于 <code>var1</code> , 如果它的地址和自己不同，那么先检查其是否是 <code>Person</code> 类型 ，如果是，则逐个对比每个成员变量是否相等。这里用到的     <code>Intrinsics.areEqual(Object o1, Object o2)</code> 定义如下：</p>
+<pre><code class="language-kotlin">public static boolean areEqual(Object first, Object second) {
+      return first == null ? second == null : first.equals(second);
+  }
+</code></pre>
+<p>最终调用了被比较对象的 <code>equals</code> 方法。<br>
+对于 Int 类型的成员变量 <code>age</code> , 直接使用 <code>==</code> 比较。</p>
+<p>这是覆写一个类的 <code>equals</code> 方法的常规写法。</p>
+</li>
+<li>
+<p><code>hashCode</code> 和 <code>toString</code> 方法也是我们常规覆写的套路。</p>
+</li>
+<li>
+<p>提供了 <code>component1</code> 和 <code>component2</code> 两个方法来获取成员变量。这两个方法可以用来做解构声明。如下：</p>
+<pre><code class="language-kotlin">val (name, age) = Person(&quot;Rose&quot;, 43) 
+println(&quot;$name, $age&quot;)
+// (name, age) 就是解构声明，name 对应 component1 , age 对应 component2 
+</code></pre>
+</li>
+<li>
+<p>提供了 <code>copy</code> 方法构造一个 <code>Person</code> 对象。有 // $FF: synthetic method 注释的 <code>copy$default</code> 方法是给 kotlin 编译器调用的，我们用不到。</p>
+<p>如果我们只想要 <code>age</code> 不同的 <code>Person</code> , 可以这样写</p>
+<pre><code class="language-kotlin">  val newPerson = p1.copy(age = 30)
+</code></pre>
+<p>编译器编译到这句代码时，会帮我们调用 <code>copy$default</code> 来构造一个 <code>name</code> 值和 p1 一样的  <code>newPerson</code> 对象 。</p>
+</li>
+</ul>
+<p>总之， <code>data class</code> 就是用常规套路来生成一个已经覆写好上述方法的类。</p>
+<p>如果 Person 类不需要自动生成 age ，只需要把 age 从主构造函数中拿出，放到类体中就可以。如下</p>
+<pre><code class="language-kotlin">data class Person(val name： String) {
+    val age: Int = 0
+}
+</code></pre>
+<h2 id="kotlin-中的-sealed-class">Kotlin 中的 sealed class</h2>
+<p><code>sealed class</code> 是一种同时拥有枚举类 <code>enum</code> 和 普通类 <code>class</code> 特性的类，叫做密封类。使用起来很简单，如下</p>
+<pre><code class="language-kotlin">sealed class Result
+class Success(val code: Int) : Result()
+class Exception(val code: Int, val message: String) : Result()
+</code></pre>
+<p>在同一个 kotlin 文件中声明三个类。首先声明 <code>sealed class</code> 类 <code>Result</code>, 然后定义出两个子类 <code>Success</code>, <code>Exception</code> 继承自 <code>Result</code>。注意，密封类及其子类必须声明在同一个 kotlin 文件中。</p>
+<p>这是一个非常常见的场景。比如对于网络请求的结果 Result ， 往往只有两种类型，成功 Success 或者是失败 Exception 。使用普通的类不能把限制关系表达出来，使用枚举类则无法灵活地自定义需要的类的内容。这时候，<code>sealed class</code> 就派上用场了。比如在处理结果 <code>Result</code> 的时候:</p>
+<pre><code class="language-kotlin">fun handleResult(result: Result): String{
+    return when(result) {
+        is Success -&gt; {
+            &quot;success&quot;
+        }
+        is Exception -&gt; {
+            &quot;exception&quot;
+        }
+    }
+}
+</code></pre>
+<p>这样，对于 <code>handleResult</code> 的入参就做了类型的限制，防止传入类型不匹配的参数。</p>
+<p>还有一个好处是，使用密封类的话，<code>when</code> 表达式可以覆盖所有情况，不需要再添加 <code>else</code> 语句（表达式即有返回值的 <code>when</code> , 没有返回值的称为 <code>when</code> 语句）。</p>
+<h2 id="sealed-class-究竟做了什么">sealed class 究竟做了什么？</h2>
+<p>同样地，让我们来看看 <code>sealed class</code> 在 java 层面做了什么，实现了前面的效果。<br>
+上述密封类反编译得到的 java 代码如下：</p>
+<pre><code class="language-java">public final class Exception extends Result {
+   private final int code;
+   @NotNull
+   private final String message;
+
+   public final int getCode() {
+      return this.code;
+   }
+
+   @NotNull
+   public final String getMessage() {
+      return this.message;
+   }
+
+   public Exception(int code, @NotNull String message) {
+      Intrinsics.checkParameterIsNotNull(message, &quot;message&quot;);
+      super((DefaultConstructorMarker)null);
+      this.code = code;
+      this.message = message;
+   }
+}
+// Success.java
+import kotlin.Metadata;
+import kotlin.jvm.internal.DefaultConstructorMarker;
+public final class Success extends Result {
+   private final int code;
+
+   public final int getCode() {
+      return this.code;
+   }
+
+   public Success(int code) {
+      super((DefaultConstructorMarker)null);
+      this.code = code;
+   }
+}
+// Result.java
+import kotlin.Metadata;
+import kotlin.jvm.internal.DefaultConstructorMarker;
+// 最重要的地方
+public abstract class Result {
+   private Result() {
+   }
+
+   // $FF: synthetic method
+   public Result(DefaultConstructorMarker $constructor_marker) {
+      this();
+   }
+}
+
+</code></pre>
+<p>可以看到，<code>Result</code> 类其实是一个抽象类，<code>Success</code> 和 <code>Exception</code> 继承了这个抽象类。<code>Result</code> 类的构造函数是私有的，不能在外部访问到。</p>
+<p>通过继承这个抽象类，达到限制类型的做法。</p>
+<p>这其实和 java 中使用接口来限定参数类型的做法类似，很好理解。</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Kotlin 中的扩展函数和扩展属性]]></title>
         <id>https://ultimateHandsomeBoy666.github.io/post/kotlin-zhong-de-kuo-zhan-han-shu-he-kuo-zhan-shu-xing/</id>

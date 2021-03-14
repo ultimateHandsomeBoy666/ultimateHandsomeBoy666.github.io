@@ -1,0 +1,228 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>二叉树的最近公共祖先 | 牛蛙的博客</title>
+<link rel="shortcut icon" href="https://ultimateHandsomeBoy666.github.io//favicon.ico?v=1615726554877">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://ultimateHandsomeBoy666.github.io//styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="二叉树的最近公共祖先 | 牛蛙的博客 - Atom Feed" href="https://ultimateHandsomeBoy666.github.io//atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="该题来自 leetcode 236， https://leetcode-cn.com/problems/lowest-common-ancestor-of-a-binary-tree/
+题目
+给定一个二叉树, 找到该树中两个指定节点 p、q..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://ultimateHandsomeBoy666.github.io/">
+  <img class="avatar" src="https://ultimateHandsomeBoy666.github.io//images/avatar.png?v=1615726554877" alt="">
+  </a>
+  <h1 class="site-title">
+    牛蛙的博客
+  </h1>
+  <p class="site-description">
+    Hello!
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              二叉树的最近公共祖先
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-03-14
+              </span>
+              <span>
+                3 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <p>该题来自 leetcode 236， https://leetcode-cn.com/problems/lowest-common-ancestor-of-a-binary-tree/</p>
+<h3 id="题目">题目</h3>
+<p>给定一个二叉树, 找到该树中两个指定节点 p、q 的最近公共祖先。</p>
+<h3 id="分析">分析</h3>
+<p>首先设 p、q 的最近公共祖先为 root。这个题目最关键的地方在于理解以下两点：</p>
+<blockquote>
+<ul>
+<li>要么 p，q 两个节点只在 root 的一个子树上，此时 root 必然就是 p、q 中深度小的那个，即 root == p || root == q</li>
+<li>要么 p，q 两个节点分别在 root 的两个子树上</li>
+</ul>
+</blockquote>
+<p>下面先来证明第一点：</p>
+<blockquote>
+<p>p，q 两个节点只在最近公共祖先 root 的一个子树上，此时 root 必然就是 p、q 中深度小的那个，即 root == p || root == q</p>
+</blockquote>
+<p>使用反证法。<br>
+假设 p，q 两个节点只在最近公共祖先 root 的一个子树上，且 root != p &amp;&amp; root != q，如下图：<br>
+<img src="https://ultimateHandsomeBoy666.github.io//post-images/1615726225557.png" alt="" loading="lazy"><br>
+很明显，此时 p、q 的最近公共祖先为 root'，而非 root。并且 p、q 也分别 root' 的两个子树上。这与 <strong>root 是最近公共祖先</strong>，以及，<strong>p、q 同在 root' 的一个子树上</strong>的假设矛盾。</p>
+<p>第二点则非常容易理解，如果 p、q 不同在 root 的一个子树上，则必然分别在两个子树上。</p>
+<p>理解了这两点有什么用呢？<br>
+这两点可以有下面的推论：</p>
+<blockquote>
+<ul>
+<li>假设 root 为 p、q 的任一公共父节点，如果 p 、q 分别在 root 的左右子树上，则 root 必为 p、q 最近公共祖先。（可由上述第一点反证推出）</li>
+<li>对于 p、q 的所有公共父节点， 如果 p、q 均不分别在其左右子树，而是同在其一颗子树上，则 p、q 的最近公共节点一定是 p、q 中深度较小的那个。</li>
+</ul>
+</blockquote>
+<p>记住了上面这两点，就可以写出非常简洁的递归代码：</p>
+<pre><code class="language-java">/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode(int x) { val = x; }
+ * }
+ */
+class Solution {
+    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+        if (root == null || root == p || root == q) return root;// 保证遍历完所有可能的 p、q 公共父节点
+        TreeNode left = lowestCommonAncestor(root.left, p, q); // 如果 left != null，则 p 或 q 在 root 的左子树中
+        TreeNode right = lowestCommonAncestor(root.right, p, q); // // 如果 right != null，则 p 或 q 在 root 的右子树中
+        if (left != null &amp;&amp; right != null) return root; // 如果 left != null &amp;&amp; right!= null，则对应推论第一点
+        return left != null ? left : right; // 在遍历完所有可能的父节点后，p、q 均不分在父节点的左右两侧，对应推论第二点
+    }
+}
+</code></pre>
+<p>参考：<br>
+https://leetcode-cn.com/problems/lowest-common-ancestor-of-a-binary-tree/solution/236-er-cha-shu-de-zui-jin-gong-gong-zu-xian-jian-j/</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#%E9%A2%98%E7%9B%AE">题目</a></li>
+<li><a href="#%E5%88%86%E6%9E%90">分析</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://ultimateHandsomeBoy666.github.io/post/kotlin-zhong-de-data-class-he-sealed-class/">
+              <h3 class="post-title">
+                Kotlin 中的 data class 和 sealed class
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://ultimateHandsomeBoy666.github.io//atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

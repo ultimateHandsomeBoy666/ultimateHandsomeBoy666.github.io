@@ -1,0 +1,408 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kotlin 中的 data class 和 sealed class | 牛蛙的博客</title>
+<link rel="shortcut icon" href="https://ultimateHandsomeBoy666.github.io//favicon.ico?v=1615726554877">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://ultimateHandsomeBoy666.github.io//styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Kotlin 中的 data class 和 sealed class | 牛蛙的博客 - Atom Feed" href="https://ultimateHandsomeBoy666.github.io//atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="Kotlin 中的 data class
+在使用 java 的时候，我们经常会重写类的 equals 、hashCode 和 toString 方法。这些方法往往都是模板化的。在 kotlin 中提供了更为简便的方法让我们使用一行代码搞定这..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://ultimateHandsomeBoy666.github.io/">
+  <img class="avatar" src="https://ultimateHandsomeBoy666.github.io//images/avatar.png?v=1615726554877" alt="">
+  </a>
+  <h1 class="site-title">
+    牛蛙的博客
+  </h1>
+  <p class="site-description">
+    Hello!
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Kotlin 中的 data class 和 sealed class
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-03-14
+              </span>
+              <span>
+                7 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h2 id="kotlin-中的-data-class">Kotlin 中的 data class</h2>
+<p>在使用 java 的时候，我们经常会重写类的 <code>equals</code> 、<code>hashCode</code> 和 <code>toString</code> 方法。这些方法往往都是模板化的。在 kotlin 中提供了更为简便的方法让我们使用一行代码搞定这些工作。这就是 <code>data class</code>。</p>
+<pre><code class="language-kotlin">// 定义一个 Person 类
+data class Person(val name: String, val age: Int) {
+}
+</code></pre>
+<p>写好上面的代码之后，<code>Person</code> 类中的上述几个方法的重写就由 kotlin 帮我们自动完成了。运行下面的代码</p>
+<pre><code class="language-kotlin">fun main() {
+    val p1 = Person(&quot;Jack&quot;, 24)
+    val p2 = Person(&quot;Jack&quot;, 24)
+
+    val p3 = Person(&quot;Jack&quot;, 32)
+    val p4 = Person(&quot;Rose&quot;, 31)
+
+    println(p1 == p2) 
+
+    println(p1 === p2)
+
+    println(p1 == p3)
+
+    println(&quot;&quot;&quot;
+        p1 hashCode = ${p1.hashCode()}
+        p2 hashCode = ${p2.hashCode()}
+        p3 hashCode = ${p3.hashCode()}
+        p4 hashCode = ${p4.hashCode()}
+    &quot;&quot;&quot;.trimIndent())
+    
+    println(&quot;p1 = $p1&quot;)
+}
+
+</code></pre>
+<p>结果如下：</p>
+<pre><code>true
+false
+false
+p1 hashCode = 71328761
+p2 hashCode = 71328761
+p3 hashCode = 71328769
+p4 hashCode = 79149200
+p1 = Person(name=Jack, age=24)
+</code></pre>
+<p>可以看到<code>equals</code> 、<code>hashCode</code> 和 <code>toString</code> 方法可以直接调用，并且已经被覆写了。</p>
+<h2 id="data-class-究竟做了什么">data class 究竟做了什么？</h2>
+<p><code>data class</code> 是如何做到上述实现的呢？查看 <code>Person</code> 类的字节码反编译得到的 java 代码，如下</p>
+<pre><code class="language-java">public final class Person {
+   @NotNull
+   private final String name;
+   private final int age;
+
+   @NotNull
+   public final String getName() {
+      return this.name;
+   }
+
+   public final int getAge() {
+      return this.age;
+   }
+
+   public Person(@NotNull String name, int age) {
+      Intrinsics.checkParameterIsNotNull(name, &quot;name&quot;);
+      super();
+      this.name = name;
+      this.age = age;
+   }
+
+   @NotNull
+   public final String component1() {
+      return this.name;
+   }
+
+   public final int component2() {
+      return this.age;
+   }
+
+   @NotNull
+   public final Person copy(@NotNull String name, int age) {
+      Intrinsics.checkParameterIsNotNull(name, &quot;name&quot;);
+      return new Person(name, age);
+   }
+
+   // $FF: synthetic method
+   public static Person copy$default(Person var0, String var1, int var2, int var3, Object var4) {
+      if ((var3 &amp; 1) != 0) {
+         var1 = var0.name;
+      }
+
+      if ((var3 &amp; 2) != 0) {
+         var2 = var0.age;
+      }
+
+      return var0.copy(var1, var2);
+   }
+
+   @NotNull
+   public String toString() {
+      return &quot;Person(name=&quot; + this.name + &quot;, age=&quot; + this.age + &quot;)&quot;;
+   }
+
+   public int hashCode() {
+      String var10000 = this.name;
+      return (var10000 != null ? var10000.hashCode() : 0) * 31 + this.age;
+   }
+
+   public boolean equals(@Nullable Object var1) {
+      if (this != var1) {
+         if (var1 instanceof Person) {
+            Person var2 = (Person)var1;
+            if (Intrinsics.areEqual(this.name, var2.name) &amp;&amp; this.age == var2.age) {
+               return true;
+            }
+         }
+
+         return false;
+      } else {
+         return true;
+      }
+   }
+}
+</code></pre>
+<p>从上面可以一目了然地看见 kotlin 是如何构造 data class 的。由于我定义的成员变量是 <code>val</code> 不可变类型的，所以没有 Getter 和 Setter。</p>
+<ul>
+<li>
+<p>对于<code>equals</code> 方法，对于 <code>var1</code> , 如果它的地址和自己不同，那么先检查其是否是 <code>Person</code> 类型 ，如果是，则逐个对比每个成员变量是否相等。这里用到的     <code>Intrinsics.areEqual(Object o1, Object o2)</code> 定义如下：</p>
+<pre><code class="language-kotlin">public static boolean areEqual(Object first, Object second) {
+      return first == null ? second == null : first.equals(second);
+  }
+</code></pre>
+<p>最终调用了被比较对象的 <code>equals</code> 方法。<br>
+对于 Int 类型的成员变量 <code>age</code> , 直接使用 <code>==</code> 比较。</p>
+<p>这是覆写一个类的 <code>equals</code> 方法的常规写法。</p>
+</li>
+<li>
+<p><code>hashCode</code> 和 <code>toString</code> 方法也是我们常规覆写的套路。</p>
+</li>
+<li>
+<p>提供了 <code>component1</code> 和 <code>component2</code> 两个方法来获取成员变量。这两个方法可以用来做解构声明。如下：</p>
+<pre><code class="language-kotlin">val (name, age) = Person(&quot;Rose&quot;, 43) 
+println(&quot;$name, $age&quot;)
+// (name, age) 就是解构声明，name 对应 component1 , age 对应 component2 
+</code></pre>
+</li>
+<li>
+<p>提供了 <code>copy</code> 方法构造一个 <code>Person</code> 对象。有 // $FF: synthetic method 注释的 <code>copy$default</code> 方法是给 kotlin 编译器调用的，我们用不到。</p>
+<p>如果我们只想要 <code>age</code> 不同的 <code>Person</code> , 可以这样写</p>
+<pre><code class="language-kotlin">  val newPerson = p1.copy(age = 30)
+</code></pre>
+<p>编译器编译到这句代码时，会帮我们调用 <code>copy$default</code> 来构造一个 <code>name</code> 值和 p1 一样的  <code>newPerson</code> 对象 。</p>
+</li>
+</ul>
+<p>总之， <code>data class</code> 就是用常规套路来生成一个已经覆写好上述方法的类。</p>
+<p>如果 Person 类不需要自动生成 age ，只需要把 age 从主构造函数中拿出，放到类体中就可以。如下</p>
+<pre><code class="language-kotlin">data class Person(val name： String) {
+    val age: Int = 0
+}
+</code></pre>
+<h2 id="kotlin-中的-sealed-class">Kotlin 中的 sealed class</h2>
+<p><code>sealed class</code> 是一种同时拥有枚举类 <code>enum</code> 和 普通类 <code>class</code> 特性的类，叫做密封类。使用起来很简单，如下</p>
+<pre><code class="language-kotlin">sealed class Result
+class Success(val code: Int) : Result()
+class Exception(val code: Int, val message: String) : Result()
+</code></pre>
+<p>在同一个 kotlin 文件中声明三个类。首先声明 <code>sealed class</code> 类 <code>Result</code>, 然后定义出两个子类 <code>Success</code>, <code>Exception</code> 继承自 <code>Result</code>。注意，密封类及其子类必须声明在同一个 kotlin 文件中。</p>
+<p>这是一个非常常见的场景。比如对于网络请求的结果 Result ， 往往只有两种类型，成功 Success 或者是失败 Exception 。使用普通的类不能把限制关系表达出来，使用枚举类则无法灵活地自定义需要的类的内容。这时候，<code>sealed class</code> 就派上用场了。比如在处理结果 <code>Result</code> 的时候:</p>
+<pre><code class="language-kotlin">fun handleResult(result: Result): String{
+    return when(result) {
+        is Success -&gt; {
+            &quot;success&quot;
+        }
+        is Exception -&gt; {
+            &quot;exception&quot;
+        }
+    }
+}
+</code></pre>
+<p>这样，对于 <code>handleResult</code> 的入参就做了类型的限制，防止传入类型不匹配的参数。</p>
+<p>还有一个好处是，使用密封类的话，<code>when</code> 表达式可以覆盖所有情况，不需要再添加 <code>else</code> 语句（表达式即有返回值的 <code>when</code> , 没有返回值的称为 <code>when</code> 语句）。</p>
+<h2 id="sealed-class-究竟做了什么">sealed class 究竟做了什么？</h2>
+<p>同样地，让我们来看看 <code>sealed class</code> 在 java 层面做了什么，实现了前面的效果。<br>
+上述密封类反编译得到的 java 代码如下：</p>
+<pre><code class="language-java">public final class Exception extends Result {
+   private final int code;
+   @NotNull
+   private final String message;
+
+   public final int getCode() {
+      return this.code;
+   }
+
+   @NotNull
+   public final String getMessage() {
+      return this.message;
+   }
+
+   public Exception(int code, @NotNull String message) {
+      Intrinsics.checkParameterIsNotNull(message, &quot;message&quot;);
+      super((DefaultConstructorMarker)null);
+      this.code = code;
+      this.message = message;
+   }
+}
+// Success.java
+import kotlin.Metadata;
+import kotlin.jvm.internal.DefaultConstructorMarker;
+public final class Success extends Result {
+   private final int code;
+
+   public final int getCode() {
+      return this.code;
+   }
+
+   public Success(int code) {
+      super((DefaultConstructorMarker)null);
+      this.code = code;
+   }
+}
+// Result.java
+import kotlin.Metadata;
+import kotlin.jvm.internal.DefaultConstructorMarker;
+// 最重要的地方
+public abstract class Result {
+   private Result() {
+   }
+
+   // $FF: synthetic method
+   public Result(DefaultConstructorMarker $constructor_marker) {
+      this();
+   }
+}
+
+</code></pre>
+<p>可以看到，<code>Result</code> 类其实是一个抽象类，<code>Success</code> 和 <code>Exception</code> 继承了这个抽象类。<code>Result</code> 类的构造函数是私有的，不能在外部访问到。</p>
+<p>通过继承这个抽象类，达到限制类型的做法。</p>
+<p>这其实和 java 中使用接口来限定参数类型的做法类似，很好理解。</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#kotlin-%E4%B8%AD%E7%9A%84-data-class">Kotlin 中的 data class</a></li>
+<li><a href="#data-class-%E7%A9%B6%E7%AB%9F%E5%81%9A%E4%BA%86%E4%BB%80%E4%B9%88">data class 究竟做了什么？</a></li>
+<li><a href="#kotlin-%E4%B8%AD%E7%9A%84-sealed-class">Kotlin 中的 sealed class</a></li>
+<li><a href="#sealed-class-%E7%A9%B6%E7%AB%9F%E5%81%9A%E4%BA%86%E4%BB%80%E4%B9%88">sealed class 究竟做了什么？</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://ultimateHandsomeBoy666.github.io/post/kotlin-zhong-de-kuo-zhan-han-shu-he-kuo-zhan-shu-xing/">
+              <h3 class="post-title">
+                Kotlin 中的扩展函数和扩展属性
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://ultimateHandsomeBoy666.github.io//atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
