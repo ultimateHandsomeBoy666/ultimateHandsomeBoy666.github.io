@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ultimateHandsomeBoy666.github.io/</id>
     <title>牛蛙的博客</title>
-    <updated>2021-03-14T12:10:00.382Z</updated>
+    <updated>2021-03-14T12:13:32.969Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ultimateHandsomeBoy666.github.io/"/>
     <link rel="self" href="https://ultimateHandsomeBoy666.github.io/atom.xml"/>
@@ -22,7 +22,7 @@
 <img src="https://ultimateHandsomeBoy666.github.io//post-images/1615723745197.gif" alt="Message配合Handler实现.gif" loading="lazy"><br>
 在MainActivity中创建一个产生随机数据的线程，每产生一个数据发送一个Message，Handler收到Message之后更新折线图。</p>
 <p>MainActivity代码如下：</p>
-<pre><code class="language-Java">public class MainActivity extends AppCompatActivity {
+<pre><code class="language-java">public class MainActivity extends AppCompatActivity {
     private static final int TAG = 1;//Message的what标识
     private TextView mTextView;
     private Button mStartButton;
@@ -163,10 +163,10 @@
     }
 }
 </code></pre>
-<h2 id="2-rxjava实现">2、RxJava实现</h2>
+<h3 id="2-rxjava实现">2、RxJava实现</h3>
 <p>Rxjava在处理复杂的多线程事件逻辑时比Handler/Async等要简单易用可靠。用来写这个demo算是大炮打蚊子，纯当练手了。</p>
 <p>MainActivity</p>
-<pre><code>public class MainActivity extends AppCompatActivity {
+<pre><code class="language-Java">public class MainActivity extends AppCompatActivity {
     private static final String TAG = &quot;MainActivity&quot;;
     private LineChart mLineChart;
     private TextView mTextView;
@@ -215,7 +215,7 @@
 还要注意的是，Observable.interval()默认订阅Schedulers.computation这个线程，如果有UI更新的话，需要在主线程中进行观察，即调用observeOn(AndroidSchedulers.mainThread())。<br>
 <strong>但是我发现一个很神奇的事，MPAndroidChart可以在非UI线程中进行刷新</strong>。</p>
 <p>难道只能用Observal.interval()吗?其实不是的，我发现只要使被观察者线程休眠一小段时间，就能让折线图刷新出来，代码如下</p>
-<pre><code>Observable.create(new ObservableOnSubscribe&lt;Data&gt;() {
+<pre><code class="language-java">Observable.create(new ObservableOnSubscribe&lt;Data&gt;() {
             @Override
             public void subscribe(@NonNull ObservableEmitter&lt;Data&gt; e) throws Exception {
                 Long x = 0l;
@@ -247,7 +247,7 @@
 如果被观察者的线程调用了Thread.sleep(1)，而观察者在onNext()中调用了Thread.sleep(1000)，那么会出现上下游事件处理速率不匹配，事件丢失，OOM等情况。<br>
 这个时候就要用支持背压的Flowable了。<br>
 其实用Flowable同样可以实现折线图更新，代码如下：</p>
-<pre><code>Flowable.create(new FlowableOnSubscribe&lt;Data&gt;() {
+<pre><code class="language-java">Flowable.create(new FlowableOnSubscribe&lt;Data&gt;() {
             @Override
             public void subscribe(FlowableEmitter&lt;Data&gt; e) throws Exception{
                 Long x = 0l;
@@ -306,16 +306,16 @@
         <updated>2019-05-15T11:47:24.000Z</updated>
         <content type="html"><![CDATA[<p>在项目中要实现用户退出登录的功能，当用户点击退出登录按钮后，跳转到登录页面的 Activity ，直接用 startActivity() 跳转，点击返回键后仍会回到退出前的 Activity 。</p>
 <p>如果使用下面这句代码给 intent 设置 Flag</p>
-<pre><code class="language-Java">intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+<pre><code class="language-java">intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 </code></pre>
 <p>在第一次登录时有效，因为用户第一次登录时会在登录页面输入账号密码进行登录，然后跳转到主页面。这样在退出登录时，会回到之前经过的登录 Activity ，任务栈会将登录页面<br>
 Activity 之上的 Activity 全部清空，按返回键不会回到主页面。<br>
 但是在用户已经登录过之后，由于账号密码已经保存，不需要再次输入进行登录，不会经过登录 Activity ， 这样在退出登录后按返回键仍会返回到主页面。</p>
 <p>使用 FLAG_ACTIVITY_CLEAR_TASK ， FLAG_ACTIVITY_NEW_TASK 即可解决。代码如下：</p>
-<pre><code class="language-Java">intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+<pre><code class="language-java">intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 </code></pre>
-<p>######注意是 addFlags() 不是 setFlags()<br>
+<p><strong>注意是 addFlags() 不是 setFlags()</strong><br>
 谷歌官方文档提到， Intent.FLAG_ACTIVITY_CLEAR_TASK 要起作用，必须和 Intent.FLAG_ACTIVITY_NEW_TASK 配合使用。<br>
 这两个 Flag 可以将原有任务栈清空,并将 intent 的目标 Activity 作为任务栈的根 Activity 。任务栈的 Id 没有变，如下所示，也就是说，并没有开辟新的任务栈。</p>
 <pre><code>I/得到TaskId: 19959
@@ -335,7 +335,7 @@ intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 <img src="https://ultimateHandsomeBoy666.github.io//post-images/1615719976617.png" alt="HashTable 的继承关系" loading="lazy"><br>
 2、HashMap的key和value值可以为null，而HashTable遇到null会抛出NullPointerException。HashMap遇到null的key会将其赋值为0。<br>
 3、HashTable是线程安全的，而HashMap不是。如果你需要线程安全的HashMap，使用ConcurrentHashMap。或者用如下代码让HashMap同步：</p>
-<pre><code>Map map = Collections.synchronizeMap(hashMap);
+<pre><code class="language-java">Map map = Collections.synchronizeMap(hashMap);
 </code></pre>
 <p>如果不需要线程安全，使用HashMap，HashTable已经不再推荐使用。<br>
 4、HashMap的迭代器(Iterator)是fail-fast(快速失败)迭代器，而Hashtable的enumerator迭代器不是fail-fast的。所以当有其它线程改变了HashMap的结构（增加或者移除元素），将会抛出ConcurrentModificationException，但迭代器本身的remove()方法移除元素则不会抛出ConcurrentModificationException异常。但这并不是一个一定发生的行为，要看JVM。这条同样也是Enumeration和Iterator的区别。</p>

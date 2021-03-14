@@ -3,7 +3,7 @@
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Android 实现图表实时更新 | 牛蛙的博客</title>
-<link rel="shortcut icon" href="https://ultimateHandsomeBoy666.github.io//favicon.ico?v=1615723771071">
+<link rel="shortcut icon" href="https://ultimateHandsomeBoy666.github.io//favicon.ico?v=1615724009572">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://ultimateHandsomeBoy666.github.io//styles/main.css">
 <link rel="alternate" type="application/atom+xml" title="Android 实现图表实时更新 | 牛蛙的博客 - Atom Feed" href="https://ultimateHandsomeBoy666.github.io//atom.xml">
@@ -25,7 +25,7 @@
       <div class="main-content">
         <div class="site-header">
   <a href="https://ultimateHandsomeBoy666.github.io/">
-  <img class="avatar" src="https://ultimateHandsomeBoy666.github.io//images/avatar.png?v=1615723771071" alt="">
+  <img class="avatar" src="https://ultimateHandsomeBoy666.github.io//images/avatar.png?v=1615724009572" alt="">
   </a>
   <h1 class="site-title">
     牛蛙的博客
@@ -104,7 +104,7 @@
 <img src="https://ultimateHandsomeBoy666.github.io//post-images/1615723745197.gif" alt="Message配合Handler实现.gif" loading="lazy"><br>
 在MainActivity中创建一个产生随机数据的线程，每产生一个数据发送一个Message，Handler收到Message之后更新折线图。</p>
 <p>MainActivity代码如下：</p>
-<pre><code class="language-Java">public class MainActivity extends AppCompatActivity {
+<pre><code class="language-java">public class MainActivity extends AppCompatActivity {
     private static final int TAG = 1;//Message的what标识
     private TextView mTextView;
     private Button mStartButton;
@@ -245,10 +245,10 @@
     }
 }
 </code></pre>
-<h2 id="2-rxjava实现">2、RxJava实现</h2>
+<h3 id="2-rxjava实现">2、RxJava实现</h3>
 <p>Rxjava在处理复杂的多线程事件逻辑时比Handler/Async等要简单易用可靠。用来写这个demo算是大炮打蚊子，纯当练手了。</p>
 <p>MainActivity</p>
-<pre><code>public class MainActivity extends AppCompatActivity {
+<pre><code class="language-Java">public class MainActivity extends AppCompatActivity {
     private static final String TAG = &quot;MainActivity&quot;;
     private LineChart mLineChart;
     private TextView mTextView;
@@ -297,7 +297,7 @@
 还要注意的是，Observable.interval()默认订阅Schedulers.computation这个线程，如果有UI更新的话，需要在主线程中进行观察，即调用observeOn(AndroidSchedulers.mainThread())。<br>
 <strong>但是我发现一个很神奇的事，MPAndroidChart可以在非UI线程中进行刷新</strong>。</p>
 <p>难道只能用Observal.interval()吗?其实不是的，我发现只要使被观察者线程休眠一小段时间，就能让折线图刷新出来，代码如下</p>
-<pre><code>Observable.create(new ObservableOnSubscribe&lt;Data&gt;() {
+<pre><code class="language-java">Observable.create(new ObservableOnSubscribe&lt;Data&gt;() {
             @Override
             public void subscribe(@NonNull ObservableEmitter&lt;Data&gt; e) throws Exception {
                 Long x = 0l;
@@ -329,7 +329,7 @@
 如果被观察者的线程调用了Thread.sleep(1)，而观察者在onNext()中调用了Thread.sleep(1000)，那么会出现上下游事件处理速率不匹配，事件丢失，OOM等情况。<br>
 这个时候就要用支持背压的Flowable了。<br>
 其实用Flowable同样可以实现折线图更新，代码如下：</p>
-<pre><code>Flowable.create(new FlowableOnSubscribe&lt;Data&gt;() {
+<pre><code class="language-java">Flowable.create(new FlowableOnSubscribe&lt;Data&gt;() {
             @Override
             public void subscribe(FlowableEmitter&lt;Data&gt; e) throws Exception{
                 Long x = 0l;
@@ -387,9 +387,9 @@
 <li>
 <ul>
 <li><a href="#1-message%E9%85%8D%E5%90%88handler%E5%AE%9E%E7%8E%B0">1、Message配合Handler实现</a></li>
+<li><a href="#2-rxjava%E5%AE%9E%E7%8E%B0">2、RxJava实现</a></li>
 </ul>
 </li>
-<li><a href="#2-rxjava%E5%AE%9E%E7%8E%B0">2、RxJava实现</a></li>
 </ul>
 </li>
 </ul>

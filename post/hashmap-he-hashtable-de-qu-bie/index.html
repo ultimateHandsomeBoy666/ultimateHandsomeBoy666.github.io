@@ -3,7 +3,7 @@
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>HashMap 和 HashTable 的区别 | 牛蛙的博客</title>
-<link rel="shortcut icon" href="https://ultimateHandsomeBoy666.github.io//favicon.ico?v=1615723771071">
+<link rel="shortcut icon" href="https://ultimateHandsomeBoy666.github.io//favicon.ico?v=1615724009572">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://ultimateHandsomeBoy666.github.io//styles/main.css">
 <link rel="alternate" type="application/atom+xml" title="HashMap 和 HashTable 的区别 | 牛蛙的博客 - Atom Feed" href="https://ultimateHandsomeBoy666.github.io//atom.xml">
@@ -21,7 +21,7 @@
       <div class="main-content">
         <div class="site-header">
   <a href="https://ultimateHandsomeBoy666.github.io/">
-  <img class="avatar" src="https://ultimateHandsomeBoy666.github.io//images/avatar.png?v=1615723771071" alt="">
+  <img class="avatar" src="https://ultimateHandsomeBoy666.github.io//images/avatar.png?v=1615724009572" alt="">
   </a>
   <h1 class="site-title">
     牛蛙的博客
@@ -99,7 +99,7 @@
 <img src="https://ultimateHandsomeBoy666.github.io//post-images/1615719976617.png" alt="HashTable 的继承关系" loading="lazy"><br>
 2、HashMap的key和value值可以为null，而HashTable遇到null会抛出NullPointerException。HashMap遇到null的key会将其赋值为0。<br>
 3、HashTable是线程安全的，而HashMap不是。如果你需要线程安全的HashMap，使用ConcurrentHashMap。或者用如下代码让HashMap同步：</p>
-<pre><code>Map map = Collections.synchronizeMap(hashMap);
+<pre><code class="language-java">Map map = Collections.synchronizeMap(hashMap);
 </code></pre>
 <p>如果不需要线程安全，使用HashMap，HashTable已经不再推荐使用。<br>
 4、HashMap的迭代器(Iterator)是fail-fast(快速失败)迭代器，而Hashtable的enumerator迭代器不是fail-fast的。所以当有其它线程改变了HashMap的结构（增加或者移除元素），将会抛出ConcurrentModificationException，但迭代器本身的remove()方法移除元素则不会抛出ConcurrentModificationException异常。但这并不是一个一定发生的行为，要看JVM。这条同样也是Enumeration和Iterator的区别。</p>
