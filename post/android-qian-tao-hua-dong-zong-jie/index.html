@@ -1,0 +1,589 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Android 嵌套滑动总结 | 牛蛙的博客</title>
+<link rel="shortcut icon" href="https://ultimateHandsomeBoy666.github.io//favicon.ico?v=1615750490919">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://ultimateHandsomeBoy666.github.io//styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Android 嵌套滑动总结 | 牛蛙的博客 - Atom Feed" href="https://ultimateHandsomeBoy666.github.io//atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="一、什么是嵌套滑动
+嵌套滑动是 android 开发中常见的一种 UI 效果。当一个布局中包含多个可以滑动的 View，并且这些 View 互相嵌套的时候，就需要做嵌套滑动的处理来让 UI 交互有更流畅的效果，比如吸顶效果。常见的效果如下：..." />
+    <meta name="keywords" content="Android" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.6.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://ultimateHandsomeBoy666.github.io/">
+  <img class="avatar" src="https://ultimateHandsomeBoy666.github.io//images/avatar.png?v=1615750490919" alt="">
+  </a>
+  <h1 class="site-title">
+    牛蛙的博客
+  </h1>
+  <p class="site-description">
+    Hello!
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/ultimateHandsomeBoy666" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Android 嵌套滑动总结
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-03-14
+              </span>
+              <span>
+                19 min read
+              </span>
+              
+                <a href="https://ultimateHandsomeBoy666.github.io/tag/byBHFmvUH/" class="post-tag">
+                  # Android
+                </a>
+              
+            </div>
+            
+              <img class="post-feature-image" src="https://ultimateHandsomeBoy666.github.io//post-images/android-qian-tao-hua-dong-zong-jie.jpeg" alt="">
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h3 id="一-什么是嵌套滑动">一、什么是嵌套滑动</h3>
+<p>嵌套滑动是 android 开发中常见的一种 UI 效果。当一个布局中包含多个可以滑动的 View，并且这些 View 互相嵌套的时候，就需要做嵌套滑动的处理来让 UI 交互有更流畅的效果，比如吸顶效果。常见的效果如下：</p>
+<img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/fbee9045194e4b09a0fd92554693c80c~tplv-k3u1fbpfcp-watermark.image" alt="1615737449263149" height="240px" width="160px"/>
+<p>如上所示，最外层的父布局可以滑动，内层的 RecyclerView 也可以滑动。当上滑 RecyclerView 的时候，最外层的父布局先上滑，直到上滑到 tab 的时候，这时候 RecyclerView 开始滑动，父布局停止滑动，并且手指不需要离开屏幕，可以一次性完成整个操作。这样就达到了内外布局连贯滑动的效果，并且达到了 tab 吸顶的效果。</p>
+<h3 id="二-滑动嵌套解决方案">二、滑动嵌套解决方案</h3>
+<p>那么如何才能做到这样的连贯的嵌套滑动呢？</p>
+<h4 id="1-手动覆写事件分发与拦截">1、手动覆写事件分发与拦截</h4>
+<p>大家都很熟悉 android 的事件分发机制，要做到嵌套滑动的效果，重写事件分发是最为原始的一种方法，早期的 android 开发们就是这样做的。以之前展示的效果的为例，在 ACTION_MOVE 事件分发时，先判断 tab 位置是否到顶端，如果没到，则让外层父布局拦截掉 MOVE 事件，父布局滑动。如果已经到了，则不拦截，将事件传给子 RecyclerView，流程如下：</p>
+<figure data-type="image" tabindex="1"><img src="https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/0ceab0391ad84aefa0fb815650c899d0~tplv-k3u1fbpfcp-watermark.image" alt="image.png" loading="lazy"></figure>
+<p>是否拦截事件，即重写 <code>onIntercetTouchEvent</code> 方法，是该流程的核心。</p>
+<h5 id="手动重写事件分发的缺点">手动重写事件分发的缺点</h5>
+<ul>
+<li>
+<p><strong>只适合比较简单的嵌套滑动情况</strong></p>
+<p>这一点很好理解。因为你需要自己手动编写拦截逻辑，嵌套滑动的布局一旦复杂，那么就需要大量的代码和逻辑来实现嵌套滑动，增大维护的成本。所以不适合复杂的嵌套滑动布局，实际上也很难实现复杂的嵌套滑动。</p>
+</li>
+<li>
+<p><strong>难以支持 fling</strong></p>
+<p>fling 指的是滑动松手后，视图继续依靠惯性滑动的过程。一般来说，考虑到用户体验，嵌套滑动是需要支持 fling 的。那么对于手动编写事件分发来说，除了需要重写 <code>onInterceptTouchEvent</code> 之外，还需要针对 <code>ACTION_UP</code> 事件进行特定的处理，因为 fling 源于 <code>ACTION_UP</code> 事件时产生的 <code>Velocity</code>。然而事件分发机制并没有提供像 <code>onInterceptTouchEvent</code> 的那样的对外暴露的接口让开发者来处理 <code>ACITON_UP</code> 事件。只能通过复写 <code>onTouchEvent</code> 等方法来处理，而这样做的限制太大，因为你需要调用 <code>super.onTouchEvent</code>，但是你又不能修改其中的代码。</p>
+</li>
+<li>
+<p><strong>没有办法实现连贯的吸顶嵌套滑动</strong></p>
+<p>还是以之前的例子来说，当 tab 吸顶后，我们希望的是手指不松开继续往上滑可以使 RecyclerView 往上滑，然而手动拦截事件的做法是做不到的，必须先抬起手指然后再次滑动。为什么会这样？看看  <code>dispatchTouchEvent</code>  中的代码：</p>
+<pre><code class="language-java">if (actionMasked == MotionEvent.ACTION_DOWN || mFirstTouchTarget != null) {
+                ......
+            } else {
+  // 当 MotionEvent 为 ACTION_MOVE 且 mFirstTouchTarget == null 时，仍然拦截事件
+                intercepted = true;
+            }
+</code></pre>
+<p>当 ViewGroup 在分发事件时，如果 <code>mFirstTouchTarget == null</code> 则说明 ViewGroup 中没有子 View 来消费事件，该事件由 ViewGroup 自己处理。而当 ViewGroup 拦截事件后，恰恰会将 <code>mFirstTouchTarget</code> 置空。回到之前的例子，当外层滑动父布局拦截了 <code>ACTION_MOVE</code> 事件后，会将 <code>mFirstTouchTarget</code> 置空。接下来即使吸顶后不拦截事件，由于 <code>mFirstTouchTarget</code> 已经为 <code>null</code>，所以事件不会传递到子 RecyclerView，而是继续由父布局消费。这样就没有达到连贯的吸顶嵌套滑动的效果。</p>
+</li>
+</ul>
+<h4 id="2-coordinatorlayout-appbar-behavior-scrollflag">2、CoordinatorLayout + AppBar + Behavior + scrollFlag</h4>
+<p><code>CoordinatorLayout</code> 是 google 提供的一套可以实现复杂交互效果的布局，和 <code>AppBar</code> 、<code>Behavior</code>、<code>scrollFlag</code> 配合使用，可以解耦地定制多种效果，这些效果由 <code>Behavior</code> 和 <code>scrollFlag</code>指定。并且 <code>Behavior</code> 可以自定义。</p>
+<p>要用 <code>CoordinatorLayout</code> 实现嵌套滑动非常简单，只要按如下编写布局文件：</p>
+<pre><code class="language-xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+&lt;androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;
+    xmlns:app=&quot;http://schemas.android.com/apk/res-auto&quot;
+    xmlns:tools=&quot;http://schemas.android.com/tools&quot;
+    android:layout_width=&quot;match_parent&quot;
+    android:layout_height=&quot;match_parent&quot;&gt;
+
+    &lt;com.google.android.material.appbar.AppBarLayout
+        android:layout_height=&quot;300dp&quot;
+        android:layout_width=&quot;match_parent&quot;&gt;
+        
+      	// 可滑动部分
+        &lt;View
+            android:layout_width=&quot;match_parent&quot;
+            android:layout_height=&quot;0dp&quot;
+            android:layout_weight=&quot;1&quot;
+            app:layout_scrollFlags=&quot;scroll&quot;/&gt;
+
+        &lt;TextView
+            android:layout_width=&quot;match_parent&quot;
+            android:layout_height=&quot;64dp&quot;
+            android:layout_gravity=&quot;bottom&quot;
+            android:text=&quot;Top&quot;
+            android:textSize=&quot;32sp&quot;
+            android:textColor=&quot;@color/white&quot;
+            android:gravity=&quot;center&quot;
+            android:textStyle=&quot;bold&quot;/&gt;
+
+    &lt;/com.google.android.material.appbar.AppBarLayout&gt;
+
+    &lt;androidx.recyclerview.widget.RecyclerView
+        android:id=&quot;@+id/rv&quot;
+        android:layout_width=&quot;match_parent&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        app:layout_behavior=&quot;@string/appbar_scrolling_view_behavior&quot;/&gt;
+
+&lt;/androidx.coordinatorlayout.widget.CoordinatorLayout&gt;
+</code></pre>
+<p>将 <code>AppBarLayout</code> 中需要上滑隐藏的部分的 <code>scrollFlag</code>指定为 <code>scroll</code> ，在RecyclerView 中指定 <code>behavior</code> 为 <code>appbar_scrolling_view_behavior</code> 就可以实现最简单的吸顶嵌套滑动，如下：</p>
+<img src="https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/eb76cc0af0dd48769b24d6c2f8ec3342~tplv-k3u1fbpfcp-watermark.image" alt="1615743833115315" height="240px" width="160px" />
+<p>看起来像带有 header 的 RecyclerView 在滑动，但其实是嵌套滑动。</p>
+<p><code>layout_scrollFlags</code> 和 <code>layout_behavior</code> 有很多可选值，配合起来可以实现多种效果，不只限于嵌套滑动。具体可以参考 API 文档。</p>
+<p>使用 <code>CoordinatorLayout</code> 实现嵌套滑动比手动实现要好得多，既可以实现连贯的吸顶嵌套滑动，又支持 fling。而且是官方提供的布局，可以放心使用，出 bug 的几率很小，性能也不会有问题。不过也正是因为官方将其封装得很好，使用 <code>CoordinatorLayout</code> 很难实现比较复杂的嵌套滑动布局，比如多级嵌套滑动。</p>
+<h4 id="3-嵌套滑动组件-nestedscrollingparent-和-nestedscrollingchild">3、嵌套滑动组件 NestedScrollingParent 和 NestedScrollingChild</h4>
+<p><code>NestedScrollingParent</code> 和 <code>NestedScrollingChild</code> 是 google 官方提供地一套专门用来解决嵌套滑动地组件。它们是两个接口，代码如下：</p>
+<pre><code class="language-java">public interface NestedScrollingParent2 extends NestedScrollingParent {
+
+    boolean onStartNestedScroll(@NonNull View child, @NonNull View target, @ScrollAxis int axes,
+            @NestedScrollType int type);
+
+    void onNestedScrollAccepted(@NonNull View child, @NonNull View target, @ScrollAxis int axes,
+            @NestedScrollType int type);
+
+    void onStopNestedScroll(@NonNull View target, @NestedScrollType int type);
+
+    void onNestedScroll(@NonNull View target, int dxConsumed, int dyConsumed,
+            int dxUnconsumed, int dyUnconsumed, @NestedScrollType int type);
+
+    void onNestedPreScroll(@NonNull View target, int dx, int dy, @NonNull int[] consumed,
+            @NestedScrollType int type);
+
+}
+
+public interface NestedScrollingChild2 extends NestedScrollingChild {
+    
+    boolean startNestedScroll(@ScrollAxis int axes, @NestedScrollType int type);
+
+    void stopNestedScroll(@NestedScrollType int type);
+
+    boolean hasNestedScrollingParent(@NestedScrollType int type);
+
+    boolean dispatchNestedScroll(int dxConsumed, int dyConsumed,
+            int dxUnconsumed, int dyUnconsumed, @Nullable int[] offsetInWindow,
+            @NestedScrollType int type);
+
+    boolean dispatchNestedPreScroll(int dx, int dy, @Nullable int[] consumed,
+            @Nullable int[] offsetInWindow, @NestedScrollType int type);
+}
+
+</code></pre>
+<p>需要嵌套滑动的 View 可以实现这两个接口，复写其中的方法。这套组件实现嵌套滑动的核心原理很简单，主要是以下三步：</p>
+<ul>
+<li><code>NestedScrollingChild</code> 在 <code>onTouchEvent</code> 方法中先将 <code>ACITON_MOVE</code> 事件产生的位移 dx 和 dy 通过 <code>dispatchNestedPreScroll</code> 传递给 <code>NestedScrollingParent</code></li>
+<li><code>NestedScrollingParent</code> 在 <code>onNestedPreScroll</code> 中接受到 dx 和 dy 并进行消费。并将消费掉的位移放入 <code>int[] consumed</code> 中，<code>consumed</code> 数组是一个长度为 2 的 int 类型数组，<code>consumed[0]</code> 代表 x 轴的消耗，<code>consumed[1]</code> 代表 y 轴的消耗</li>
+<li><code>NestedScrollingChild</code> 之后从 <code>int[] consumed</code> 数组中拿到 <code>NestedScrollingParent</code> 已经消费掉的位移，减去之后得到剩余的位移，再由自己消费</li>
+</ul>
+<p>滑动位移传递方向由 child -&gt; parent -&gt; child，如下图。如果 child 是 Recyclerview ，它会先把位移给父布局消费，这时父布局滑动。当父布局滑动顶到不能滑动时，Recyclerview 这时会消费全部位移，这时它自己开始滑动，这样就形成了嵌套滑动，效果正如之前的例子中所看到的。</p>
+<figure data-type="image" tabindex="2"><img src="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/4df609e97e3d4cb99e2f739cc4340b00~tplv-k3u1fbpfcp-watermark.image" alt="位移传递流程" loading="lazy"></figure>
+<p><code>dispatchNestedScroll</code> 和 <code>onNestedScroll</code> 的作用原理上述  preScroll 的方法类似，只不过这两个方法构造的嵌套滑动顺序和 preScroll 的相反，是子 View 先消费，子 View 消费不了的时候，再由父 View 再消费。</p>
+<p>这套机制还支持 fling，在手指离开 view 的时候，即产生 <code>ACITON_UP</code> 事件时，child 将此时的 <code>Velocity</code> 转化为位移 <code>dx</code> 或 <code>dy</code>，并重复之前的流程。通过 <code>@NestedScrollType int type</code> 的值来判断是 <code>TYPE_TOUCH</code> 还是 <code>TYPE_NON_TOUCH</code>， <code>TYPE_TOUCH</code>  就是滑动， <code>TYPE_NON_TOUCH</code> 就是 fling。</p>
+<h5 id="android-中哪些-view-使用了这套滑动机制">Android 中哪些 View 使用了这套滑动机制？</h5>
+<ul>
+<li>实现 <code>NestedScrollingParent</code> 接口的 View 有：<code>NestedScrollView</code>、<code>CoordinatorLayout</code>、<code>MotionLayout</code> 等</li>
+<li>实现 <code>NestedScrollingChild</code> 接口的 View 有：<code>NestedScrollView</code>、<code>RecyclerView</code> 等</li>
+<li><code>NestedScrollView</code> 是唯一同时实现两个接口的 View，这意味着它可以用作中介来实现多级嵌套滑动，后面会说到。</li>
+</ul>
+<p>从上面可以看到，实际上，之前提到的 <code>CoordinatorLayout</code> 实现的嵌套滑动，本质上也是通过这套 NestedScrolling 接口来实现的。但是由于它封装得太好，我们没办法做过多定制。而直接使用这套接口，就可以根据自己的需求做定制。</p>
+<p>大部分的场景中，我们不需要去实现 <code>NestedScrollingChild</code> 接口，因为 RecyclerView 已经做了这个实现，而涉及到嵌套滑动场景的子 View 基本也都是 RecyclerView。我们看看 RecyclerView 的相关源码：</p>
+<pre><code class="language-java">public boolean onTouchEvent(MotionEvent e) {
+    ...
+    case MotionEvent.ACTION_MOVE: {
+               ...
+                // 计算 dx，dy
+                int dx = mLastTouchX - x;
+                int dy = mLastTouchY - y;
+				...
+                    mReusableIntPair[0] = 0;
+                    mReusableIntPair[1] = 0;
+       				...
+                    // 分发 preScroll
+                    if (dispatchNestedPreScroll(
+                        canScrollHorizontally ? dx : 0,
+                        canScrollVertically ? dy : 0,
+                        mReusableIntPair, mScrollOffset, TYPE_TOUCH
+                    )) {
+                        // 减去父 view 消费掉的位移
+                        dx -= mReusableIntPair[0];
+                        dy -= mReusableIntPair[1];
+            
+                        mNestedOffsets[0] += mScrollOffset[0];
+                        mNestedOffsets[1] += mScrollOffset[1];
+                        
+                        getParent().requestDisallowInterceptTouchEvent(true);
+                    }
+        ...
+            } break;
+    ...
+}
+
+
+boolean scrollByInternal(int x, int y, MotionEvent ev) {
+        int unconsumedX = 0;
+        int unconsumedY = 0;
+        int consumedX = 0;
+        int consumedY = 0;
+        if (mAdapter != null) {
+            mReusableIntPair[0] = 0;
+            mReusableIntPair[1] = 0;
+            // 先消耗掉自己的 scroll
+            scrollStep(x, y, mReusableIntPair);
+            consumedX = mReusableIntPair[0];
+            consumedY = mReusableIntPair[1];
+            // 计算剩余的量
+            unconsumedX = x - consumedX;
+            unconsumedY = y - consumedY;
+        }
+
+        mReusableIntPair[0] = 0;
+        mReusableIntPair[1] = 0;
+    	// 分发 nestedScroll 给父 View，顺序和 preScroll 刚好相反
+        dispatchNestedScroll(consumedX, consumedY, unconsumedX, unconsumedY, mScrollOffset,
+                TYPE_TOUCH, mReusableIntPair);
+        unconsumedX -= mReusableIntPair[0];
+        unconsumedY -= mReusableIntPair[1];
+		...
+    }
+</code></pre>
+<p>RecyclerView 是怎么调到父 View 的 <code>onNestedPreSroll</code> 和 <code>onNestedScroll</code> 的呢？分析一下 <code>dispatchNestedPreScroll</code> 的代码，如下，<code>dispatchNestedScroll</code> 的代码原理和此类似，不再贴出：</p>
+<pre><code class="language-java">public boolean dispatchNestedPreScroll(int dx, int dy, int[] consumed, int[] offsetInWindow,
+            int type) {
+        return getScrollingChildHelper().dispatchNestedPreScroll(dx, dy, consumed, offsetInWindow,type);
+    }
+
+// NestedScrollingChildHelper.java
+public boolean dispatchNestedPreScroll(int dx, int dy, @Nullable int[] consumed,
+            @Nullable int[] offsetInWindow, @NestedScrollType int type) {
+        if (isNestedScrollingEnabled()) {
+            final ViewParent parent = getNestedScrollingParentForType(type);
+            if (parent == null) {
+                return false;
+            }
+
+            if (dx != 0 || dy != 0) {
+                ...
+                consumed[0] = 0;
+                consumed[1] = 0;
+                ViewParentCompat.onNestedPreScroll(parent, mView, dx, dy, consumed, type);
+								...
+            } 
+            ...
+        }
+        return false;
+    }
+
+// ViewCompat.java
+public static void onNestedPreScroll(ViewParent parent, View target, int dx, int dy,
+            int[] consumed, int type) {
+        if (parent instanceof NestedScrollingParent2) {
+            // First try the NestedScrollingParent2 API
+            ((NestedScrollingParent2) parent).onNestedPreScroll(target, dx, dy, consumed, type);
+        } else if (type == ViewCompat.TYPE_TOUCH) {
+            // Else if the type is the default (touch), try the NestedScrollingParent API
+            if (Build.VERSION.SDK_INT &gt;= 21) {
+                try {
+                    parent.onNestedPreScroll(target, dx, dy, consumed);
+                } catch (AbstractMethodError e) {
+                    Log.e(TAG, &quot;ViewParent &quot; + parent + &quot; does not implement interface &quot;
+                            + &quot;method onNestedPreScroll&quot;, e);
+                }
+            } else if (parent instanceof NestedScrollingParent) {
+                ((NestedScrollingParent) parent).onNestedPreScroll(target, dx, dy, consumed);
+            }
+        }
+    }
+</code></pre>
+<p>可以看到，RecyclerView 通过一个代理类 <code>NestedScrollingChildHelper</code> 完成滑动分发，最后交给 <code>ViewCompat</code> 的静态方法来让父 View 处理 <code>onNestedPreScroll</code>。<code>ViewCompat</code> 的主要作用是用来兼容不同版本的滑动接口。</p>
+<h5 id="实现-onnestedprescroll-方法">实现 onNestedPreScroll 方法</h5>
+<p>从上面的代码可以清楚地看到 RecyclerView 对于 <code>NestedScrollingChild</code> 的实现，以及触发嵌套滑动的时机。如果我们要实现嵌套滑动，并且内部的滑动子 View 是 RecyclerView，那么只需要让外层的父 View 实现 <code>NestedScrollingParent</code> 的方法就行了，比如在 <code>onNestedPreScroll</code> 方法中，</p>
+<pre><code class="language-java"> @Override
+    public void onNestedPreScroll(@NonNull View target, int dx, int dy, @NonNull int[] consumed, int type) {
+     	// 滑动 dy 距离
+       scrollBy(0, dy);
+        // 将消耗掉的 dy 放入 consumed 数组通知子 view
+       consumed[1] = dy;
+    }
+</code></pre>
+<p>这样就实现了最简单的嵌套滑动。当然，实际情况中，还要对滑动距离进行判断，不能让父 View 一直消费子 View 的位移。</p>
+<h5 id="关于-nestedscrollview">关于 NestedScrollView</h5>
+<p>像 <code>NestedScrollView</code> 这样的类，由于它内部实现了 <code>onNestedScroll</code>，所以在下滑时，它能在内部的 RecyclerView 下滑直到列表顶端时，外层继续下滑而不用抬起手指。另外也实现了 <code>onNestedPreScroll</code>方法，只不过它在该方法中把滑动继续向上传递，自己没有消费，如下代码：</p>
+<pre><code class="language-java">// NestedScrollView.java
+public void onNestedPreScroll(@NonNull View target, int dx, int dy, @NonNull int[] consumed,
+            int type) {
+    // 只分发了 preScroll 自己并没有消费。之所以能分发是因为 NestedScrollView 同时实现了 NestedScrollingChild 接口
+        dispatchNestedPreScroll(dx, dy, consumed, null, type);
+    }
+
+@Override
+    public boolean dispatchNestedPreScroll(int dx, int dy, int[] consumed, int[] offsetInWindow,
+            int type) {
+        return mChildHelper.dispatchNestedPreScroll(dx, dy, consumed, offsetInWindow, type);
+    }
+
+// NestedScrollingChildHelper.java
+public boolean dispatchNestedPreScroll(int dx, int dy, @Nullable int[] consumed,
+            @Nullable int[] offsetInWindow, @NestedScrollType int type) {
+        if (isNestedScrollingEnabled()) {
+            final ViewParent parent = getNestedScrollingParentForType(type);
+            if (parent == null) {
+                return false;
+            }
+            if (dx != 0 || dy != 0) {
+                ...
+                consumed[0] = 0;
+                consumed[1] = 0;
+                ViewParentCompat.onNestedPreScroll(parent, mView, dx, dy, consumed, type);
+								...
+            } 
+            ...
+        }
+        return false;
+    }
+</code></pre>
+<p>所以如果直接在 RecyclerView 的外层套 <code>NestedScrollView</code> 是没有办法实现完整的嵌套滑动的，你会发现在上滑的时候，没有嵌套滑动的效果，而下滑的时候有嵌套滑动的效果。</p>
+<h5 id="没有考虑到的问题">没有考虑到的问题</h5>
+<p>其实，在之前所说的内容中，默认了手指从子 Viw 开始滑动。假如手指从外层的父 View 开始滑动，当父 View fling 到顶后，子 View 是无法继续 fling，会立马停住，无法实现连贯的嵌套滑动。</p>
+<p>这是因为嵌套滑动组件中，位移的消费只能从 <code>NestedScrollingChild</code> 到 <code>NestedScrollingParent</code>，而不能从 <code>NestedScrollingParent</code> 到  <code>NestedScrollingChild</code> ，因为只有 <code>NestedScrollingChild</code> 才能 dispatch，<code>NestedScrollingParent</code> 不能 dispatch。</p>
+<p>如果想要实现从 <code>NestedScrollingParent</code> 到  <code>NestedScrollingChild</code>  连贯的滑动，暂时没有特别好的办法，只能重写父 View 的事件分发，将父 View 滑动到顶后剩余的位移手动分发给它的子 View。(先挖个坑，看看有没有更好的办法，可以通过扩展嵌套滑动组件达到目的）</p>
+<h5 id="tips">Tips</h5>
+<p><code>NestedScrollingParent</code> 和 <code>NestedScrollingChild</code> 一共有 3 个版本。</p>
+<p>最早的是 <code>NestedScrollingParent</code> 和 <code>NestedScrollingChild</code>，这一套接口把 scroll 和 fling 分别进行处理，造成了不必要的复杂性。</p>
+<p>后来有了 <code>NestedScrollingParent2</code> 和 <code>NestedScrollingChild2</code> 继承自一代，不过它将 fling 转化为 scroll 的距离统一进行处理。上述的嵌套滑动组件均指二代。</p>
+<p>再后来又有了 <code>NestedScrollingParent3</code> 和 <code>NestedScrollingChild</code> 继承自二代，它们相比于 2 代增加了 <code>dispatchNestedScroll</code> 和 <code>onNestedScroll</code> 消耗部分滑动位移的功能，即在父 View 消耗位移之后，将消耗值放入 <code>consumed</code> 数组通知子 View。而二代是不会让子 View 知道父 View 的消耗值的。一般来说，要自己实现嵌套滑动，只需要实现 2 代及以上接口即可。一代基本不再使用。</p>
+<p><strong>注意</strong>：使用 <code>NestedScrollView</code> 有一个地方需要注意，当它的子 View 是 RecyclerView 这种 content 可以无限长的布局时，要注意限制这些子 View 的高度，不要使用 <code>wrap_content</code> 设置 RecyclerView 的高度。因为 <code>NestedScrollView</code> 在测量时给子 View 的限制是 <code>UNSPECIFIED</code>  ，即不做限制，RecyclerView 想要多高就有多高。像 RecyclerView 如果内部 item 数量太多，RecyclerView 在 <code>wrap_content</code> 的情况下会把所有 item 都显示出来，相当于没有回收。这样会对内存造成很大消耗。如果调用 <code>setVisibility</code> 改变可见性的话，当从不可见到可见，更是会瞬间调用所有 item 的测量布局流程，造成卡顿。这是我在项目中实际遇到的问题。</p>
+<h3 id="三-多级嵌套滑动">三、多级嵌套滑动</h3>
+<p>我们知道了 <code>NestedScrollingParent</code> 和 <code>NestedScrollingChild</code>可以用来定制化地实现自己地嵌套滑动。很容易想到，如果一个 View 同时实现了两个接口，那么它既可以接受 child 的滑动，又可以分发滑动给 parent，这样就形成了一个链条。而多级嵌套滑动的核心原理就来自于此，如图：</p>
+<figure data-type="image" tabindex="3"><img src="https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/04651fef68e34951bc4bff6c90c11103~tplv-k3u1fbpfcp-watermark.image" alt="image-20210304170155409.png" loading="lazy"></figure>
+<p>原理其实并不复杂，下面用伪代码表示一下：</p>
+<ul>
+<li>
+<p>对于 <code>NestedScrollingParent</code></p>
+<pre><code> @Override
+    public void onNestedPreScroll(@NonNull View target, int dx, int dy, @NonNull int[] consumed, int type) {
+       scrollByMe(dx, dy);
+       ...
+       consumed[0] = dxConsumed;
+       consumed[1] = dyConsumed;
+    }
+</code></pre>
+</li>
+<li>
+<p>对于中介者，即同时实现了 <code>NestedScrollingParent</code> 和 <code>NestedScrollingChild</code> 的中间 View 来说</p>
+<pre><code class="language-java"> @Override
+    public void onNestedPreScroll(@NonNull View target, int dx, int dy, @NonNull int[] consumed, int type) {
+        // 先分发，再消费。当然也可以先以先消费，再分发，这取决于业务
+       dispatchNestedPreScroll(dispatchNestedPreScroll(dx, dy, consumed, null, type);
+	   	 int dx -= consumed[0];
+       int dy -= consumed[1];
+       scrollByMe(dx, dy);
+       consumed[0] = dxConsumed;
+       consumed[1] = dyConsumed;
+    }
+</code></pre>
+</li>
+<li>
+<p>对于最内层的 <code>NestedScrollingChild</code>，一般使用 RecyclerView 就可以。<br>
+在多级嵌套滑动中，可以根据业务自己设置各层在上滑与下滑过程中的优先级。</p>
+</li>
+</ul>
+<p>工作的项目因为还没发布就不放上来了，这里上一个从网上找到的即刻 App 多级嵌套滑动的图：</p>
+<figure data-type="image" tabindex="4"><img src="https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/fd9239d5d70545bd830d304e88e4af0a~tplv-k3u1fbpfcp-watermark.image" alt="3b1169d0-23cd-11eb-a910-368fe856f9f2.gif" loading="lazy"></figure>
+<p>可以参考这篇文章：https://zhuanlan.zhihu.com/p/56582475</p>
+<h3 id="四-嵌套滑动组件中使用的设计模式">四、嵌套滑动组件中使用的设计模式</h3>
+<p>作为总结，讨论一下。</p>
+<ul>
+<li>
+<p><strong>策略模式</strong></p>
+<p><code>NestedScrollingParent</code> 和 <code>NestedScrollingChild</code>是一对接口，不同的 View 通过实现这对接口来达到不同的嵌套滑动效果。同时使用接口也保证了扩展性。</p>
+</li>
+<li>
+<p><strong>代理模式</strong></p>
+<p>如前述，当一个 View 实现嵌套滑动接口中的方法时，滑动的具体传递都交给了代理的 <code>NestedScrollingParentHelper</code> 和 <code>NestedScrollingChildHelper</code>来实现，这两个类是由 sdk 提供的，在 <code>NestedScrollingParent</code> 和 <code>NestedScrollingChild</code> 接口中有如下说明：</p>
+<pre><code class="language-java">This interface should be implemented by ViewGroup subclasses
+that wish to support scrolling operations delegated by a nested child view.
+Classes implementing this interface should create a final instance of a
+NestedScrollingParentHelper as a field and delegate any View or ViewGroup methods
+to the NestedScrollingParentHelper methods of the same signature.
+</code></pre>
+</li>
+<li>
+<p><strong>适配器模式 / 外观模式</strong></p>
+<p>RecyclerView 实现了 <code>NestedScrollingChild2</code> 接口，但是如果它的父 view 实现的是一代的 <code>NestedScrollingParent</code> 接口怎么办？这就不同版本的嵌套滑动组件需要兼容。怎样实现兼容呢，使用 <code>ViewCompat</code> ，如下：</p>
+<pre><code class="language-java">// ViewCompat.java
+public static void onNestedPreScroll(ViewParent parent, View target, int dx, int dy,
+            int[] consumed, int type) {
+        if (parent instanceof NestedScrollingParent2) {
+            // First try the NestedScrollingParent2 API
+            ((NestedScrollingParent2) parent).onNestedPreScroll(target, dx, dy, consumed, type);
+        } else if (type == ViewCompat.TYPE_TOUCH) {
+            // Else if the type is the default (touch), try the NestedScrollingParent API
+            if (Build.VERSION.SDK_INT &gt;= 21) {
+                try {
+                    parent.onNestedPreScroll(target, dx, dy, consumed);
+                } catch (AbstractMethodError e) {
+                    Log.e(TAG, &quot;ViewParent &quot; + parent + &quot; does not implement interface &quot;
+                            + &quot;method onNestedPreScroll&quot;, e);
+                }
+            } else if (parent instanceof NestedScrollingParent) {
+                ((NestedScrollingParent) parent).onNestedPreScroll(target, dx, dy, consumed);
+            }
+        }
+    }
+</code></pre>
+<p>所有的 child 的滑动分发，都会通过 <code>ViewCompat</code> 的静态方法最终再传递给 parent，通过这个类以及静态方法，达到了不同版本嵌套滑动组件的兼容。同时， <code>ViewCompat</code> 对外暴露了易用的接口，而把兼容的过程隐藏在了自己内部，也可以看成是一种外观模式。</p>
+</li>
+</ul>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#%E4%B8%80-%E4%BB%80%E4%B9%88%E6%98%AF%E5%B5%8C%E5%A5%97%E6%BB%91%E5%8A%A8">一、什么是嵌套滑动</a></li>
+<li><a href="#%E4%BA%8C-%E6%BB%91%E5%8A%A8%E5%B5%8C%E5%A5%97%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88">二、滑动嵌套解决方案</a>
+<ul>
+<li><a href="#1-%E6%89%8B%E5%8A%A8%E8%A6%86%E5%86%99%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E4%B8%8E%E6%8B%A6%E6%88%AA">1、手动覆写事件分发与拦截</a>
+<ul>
+<li><a href="#%E6%89%8B%E5%8A%A8%E9%87%8D%E5%86%99%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E7%9A%84%E7%BC%BA%E7%82%B9">手动重写事件分发的缺点</a></li>
+</ul>
+</li>
+<li><a href="#2-coordinatorlayout-appbar-behavior-scrollflag">2、CoordinatorLayout + AppBar + Behavior + scrollFlag</a></li>
+<li><a href="#3-%E5%B5%8C%E5%A5%97%E6%BB%91%E5%8A%A8%E7%BB%84%E4%BB%B6-nestedscrollingparent-%E5%92%8C-nestedscrollingchild">3、嵌套滑动组件 NestedScrollingParent 和 NestedScrollingChild</a>
+<ul>
+<li><a href="#android-%E4%B8%AD%E5%93%AA%E4%BA%9B-view-%E4%BD%BF%E7%94%A8%E4%BA%86%E8%BF%99%E5%A5%97%E6%BB%91%E5%8A%A8%E6%9C%BA%E5%88%B6">Android 中哪些 View 使用了这套滑动机制？</a></li>
+<li><a href="#%E5%AE%9E%E7%8E%B0-onnestedprescroll-%E6%96%B9%E6%B3%95">实现 onNestedPreScroll 方法</a></li>
+<li><a href="#%E5%85%B3%E4%BA%8E-nestedscrollview">关于 NestedScrollView</a></li>
+<li><a href="#%E6%B2%A1%E6%9C%89%E8%80%83%E8%99%91%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98">没有考虑到的问题</a></li>
+<li><a href="#tips">Tips</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#%E4%B8%89-%E5%A4%9A%E7%BA%A7%E5%B5%8C%E5%A5%97%E6%BB%91%E5%8A%A8">三、多级嵌套滑动</a></li>
+<li><a href="#%E5%9B%9B-%E5%B5%8C%E5%A5%97%E6%BB%91%E5%8A%A8%E7%BB%84%E4%BB%B6%E4%B8%AD%E4%BD%BF%E7%94%A8%E7%9A%84%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F">四、嵌套滑动组件中使用的设计模式</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://ultimateHandsomeBoy666.github.io/post/yi-wen-du-dong-kotlin-de-xie-bian-yu-ni-bian-cong-java-shuo-qi/">
+              <h3 class="post-title">
+                一文读懂 kotlin 的协变与逆变 -- 从 Java 说起
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://ultimateHandsomeBoy666.github.io//atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
