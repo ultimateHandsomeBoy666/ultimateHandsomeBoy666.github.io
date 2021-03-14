@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ultimateHandsomeBoy666.github.io/</id>
     <title>牛蛙的博客</title>
-    <updated>2021-03-14T12:13:32.969Z</updated>
+    <updated>2021-03-14T12:45:49.953Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ultimateHandsomeBoy666.github.io/"/>
     <link rel="self" href="https://ultimateHandsomeBoy666.github.io/atom.xml"/>
@@ -10,6 +10,358 @@
     <logo>https://ultimateHandsomeBoy666.github.io/images/avatar.png</logo>
     <icon>https://ultimateHandsomeBoy666.github.io/favicon.ico</icon>
     <rights>All rights reserved 2021, 牛蛙的博客</rights>
+    <entry>
+        <title type="html"><![CDATA[Kotlin 中的扩展函数和扩展属性]]></title>
+        <id>https://ultimateHandsomeBoy666.github.io/post/kotlin-zhong-de-kuo-zhan-han-shu-he-kuo-zhan-shu-xing/</id>
+        <link href="https://ultimateHandsomeBoy666.github.io/post/kotlin-zhong-de-kuo-zhan-han-shu-he-kuo-zhan-shu-xing/">
+        </link>
+        <updated>2021-03-14T12:35:53.000Z</updated>
+        <content type="html"><![CDATA[<h3 id="kotlin-扩展函数">Kotlin 扩展函数</h3>
+<p>在 android 开发中，经常会使用到各种 utils 工具类。比如 ViewUtils， ScreenUtils， FileUtils 等，</p>
+<p>这些类往往会提供一些静态方法，让我们进行一些通用的操作。</p>
+<p>或者，我们常常会希望给某一个类增加一两个小属性或者方法，在用到这个类的地方都能调用，方便我们的开发。比如，我们希望每个 String 对象都能有一个方法，返回这个 String 对象包含的大写字母个数。</p>
+<p>我们可能会在某个 utils 中这样写</p>
+<pre><code class="language-java">public static int getStringCapitalCount(String s) throws Exception {
+        if (s == null) {
+            throw new Exception(&quot;string should not be null!&quot;);
+        }
+        int count = 0;
+        for (int i = 0; i &lt; s.length(); i++) {
+            char c = s.charAt(i);
+            if (c &gt;= 65 &amp;&amp; c &lt;= 90) {
+                count++;
+            }
+        }
+        return count;
+    }
+</code></pre>
+<p>或者, 我们会考虑使用一个子类来继承这个父类，然后给子类添加这个方法，在代码中使用子类。当然，String 是不可继承的。</p>
+<p>这样写，并没有什么问题，一贯的 java 写法。</p>
+<p>但是在 Kotlin 中，我们有了更优雅的方式。既然我们最开始的目标是希望 String 类型多一个方法，那么我们的代码也应该写得像这样，如下：</p>
+<pre><code class="language-kotlin">// 函数名以类名作为前缀： ClassName.funName
+// 该前缀叫做 接收者类型（receiver type）
+fun String.capitalCount(): Int{ 
+    var count = 0
+    this.forEach { // this 指的是类的实例对象, 叫 接收者对象（receiver object）
+        if (it.toInt() in 65..90) {
+            count ++
+        }
+    }
+    return count
+}
+</code></pre>
+<p>然后，我们可以在任何使用到 String 的地方，调用这个方法，就好像 String 类型本来就拥有这个方法一样。</p>
+<pre><code class="language-kotlin">fun main() {
+    val s = &quot;AbCdEfg&quot;
+    println(s.capitalCount())
+}
+</code></pre>
+<p>这就是 Kotlin 中的扩展函数。</p>
+<p>一般，将扩展函数定义在一个 Extensions.kt 的文件中，最外层直接写函数就可以，不需要像 java 一样定义一个类。这样定义的函数是顶层函数，类似于 java 中的静态函数，可以在任何地方被调用。</p>
+<figure data-type="image" tabindex="1"><img src="https://ultimateHandsomeBoy666.github.io//post-images/1615725849618.png" alt="" loading="lazy"></figure>
+<p>类似地， 我们再写一个例子，比如经常用到的将 Date 转为 String 的函数，我们使用扩展函数的方式：</p>
+<pre><code class="language-kotlin">fun Date.dateString(): String{
+    val dateFormat = SimpleDateFormat(&quot;yyyy-MM-dd&quot;, Locale.getDefault())
+    return dateFormat.format(this)
+}
+
+// 调用时
+fun main() {
+    println(Date().dateString())
+}
+</code></pre>
+<p><strong>注意</strong></p>
+<ul>
+<li>
+<p>扩展函数虽然看起来像是往类里面添加了成员函数，但是实际上并没有改变类的任何结构。所以，对于类内部 private、protected 以及 internal（模块外访问）修饰的成员变量和函数，是不能够访问到的，编译器会报错。</p>
+<img src="file:///Users/bullfrog/Documents/Gridea/post-images/1615725879056.png" alt="Encapsulation of an Extension Function in Kotlin" style="zoom: 80%;" />
+</li>
+<li>
+<p>如果扩展函数和类内部定义的成员函数重名，那么调用时执行的是类的函数。</p>
+</li>
+<li>
+<p>扩展是静态解析的，调⽤的扩展函数是由函数调⽤所在的表达式的类型来决定的，⽽不是由表达式运⾏时求值结果决定的。例如：</p>
+<pre><code class="language-kotlin">open class Shape
+class Rectangle: Shape()
+fun Shape.getName() = &quot;Shape&quot;
+fun Rectangle.getName() = &quot;Rectangle&quot;
+fun printClassName(s: Shape) {
+println(s.getName())
+}
+printClassName(Rectangle())
+</code></pre>
+<p>这个例子会输出 “Shape” ，因为调用的扩展函数只取决于 s 参数的类型声明，这里它是 Shape 类。</p>
+</li>
+</ul>
+<h3 id="kotlin-扩展属性">Kotlin 扩展属性</h3>
+<p>和扩展函数类似，Kotlin 同样支持扩展属性。比如：</p>
+<pre><code class="language-kotlin">// 给 StringBuilder 类添加扩展属性 firstLetter
+var StringBuilder.firstLetter: Char
+    get() = get(0)
+    set(value) = this.setCharAt(0, value)
+</code></pre>
+<p>可以把扩展属性看作是两个扩展函数，一个是 getter， 一个是 setter 。</p>
+<p>调用时：</p>
+<pre><code class="language-kotlin">fun main(args: Array&lt;String&gt;) {
+    val message = StringBuilder(&quot;hello !&quot;)
+    println(&quot;${message.firstLetter} is the first letter of $message&quot;)
+    message.firstLetter = 'H'
+    println(&quot;${message.firstLetter} is the first letter of $message&quot;)
+}
+</code></pre>
+<p>输出结果：</p>
+<blockquote>
+<p>h is the first letter of hello !</p>
+</blockquote>
+<blockquote>
+<p>H is the first letter of Hello !</p>
+</blockquote>
+<p><strong>注意</strong></p>
+<p>扩展属性没有初始化器，即扩展属性不能初始化，只能使用 getter / setter 来操作扩展属性的值。</p>
+<pre><code class="language-kotlin">val StringBuilder.firsetLetter = 'a' // 这是错误的， 不能初始化扩展属性
+</code></pre>
+<p>这是因为扩展属性并没有真正地插入一个属性到类中，所以扩展属性没有幕后字段（backing field），不能进行初始化。同样，也不能在扩展属性的 setter 里使用 field 关键字。</p>
+<p><strong>配合泛型使用</strong></p>
+<p>可以使用泛型来给多个类添加扩展属性。比如：</p>
+<pre><code class="language-kotlin">// 得到逆序的 string
+val &lt;T&gt; T.reverseString: String
+    get() {
+        return this.toString().reversed() // 实际上 reversed 函数也是 Kotlin String 类型自带的扩展函数
+    }
+</code></pre>
+<h3 id="扩展的-java-代码">扩展的 Java 代码</h3>
+<p>Kotlin 究竟是如何实现扩展函数和扩展属性的呢？</p>
+<p>还是使用之前 String.capitalCount 的例子，反编译后的 java 代码如下：</p>
+<pre><code class="language-java">// Extension.kt 文件会被编译成 ExtensionKt.class
+public final class ExtensionsKt {
+   public static final int capitalCount(@NotNull String $this$capitalCount) {
+      int count = 0;
+      CharSequence $this$forEach$iv = (CharSequence)$this$capitalCount;
+      int $i$f$forEach = false;
+      CharSequence var4 = $this$forEach$iv;
+
+      for(int var5 = 0; var5 &lt; var4.length(); ++var5) {
+         char element$iv = var4.charAt(var5);
+         int var8 = false;
+         if ('A' &lt;= element$iv) {
+            if ('Z' &gt;= element$iv) {
+               ++count;
+            }
+         }
+      }
+ return count;
+}
+</code></pre>
+<p>实际上和在 java util 中实现方法一致，生成了一个以 String 类型为形参的静态方法，而函数形参 this$capitalCount 其实就是在 kotlin 中 this 指代的那个对象。</p>
+<p>再看 StringBuilder.firstLetter 属性的反编译 java 代码：</p>
+<pre><code class="language-java">public static final char getFirstLetter(@NotNull StringBuilder $this$firstLetter) {
+      return $this$firstLetter.charAt(0);
+   }
+
+public static final void setFirstLetter(@NotNull StringBuilder $this$firstLetter, char value) {
+      $this$firstLetter.setCharAt(0, value);
+   }
+</code></pre>
+<p>其实就是生成了两个静态的方法，一个 setter 和 一个 getter。用两个扩展函数也可以达到同样的效果。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[给菜鸟看的-Android-Architecture-Components-(安卓架构组件)知识（kotlin）]]></title>
+        <id>https://ultimateHandsomeBoy666.github.io/post/gei-cai-niao-kan-de-android-architecture-components-an-zhuo-jia-gou-zu-jian-zhi-shi-kotlin/</id>
+        <link href="https://ultimateHandsomeBoy666.github.io/post/gei-cai-niao-kan-de-android-architecture-components-an-zhuo-jia-gou-zu-jian-zhi-shi-kotlin/">
+        </link>
+        <updated>2021-03-14T12:23:51.000Z</updated>
+        <content type="html"><![CDATA[<p>本文为译文，原文链接：<br>
+<a href="https://medium.com/@elye.project/android-architecture-components-for-dummies-in-kotlin-50-lines-of-code-29b29d3a381">https://medium.com/@elye.project/android-architecture-components-for-dummies-in-kotlin-50-lines-of-code-29b29d3a381</a></p>
+<p>以前写 android 程序时，只需要把所有代码写在 Activity 中就可以了，比如：</p>
+<pre><code class="language-java">class MainActivity : AppCompatActivity() {
+    private var count = 0
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        my_container.setOnClickListener { incrementCount() }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        incrementCount()
+    }
+
+    private fun incrementCount() {
+        my_text.text = (++count).toString()
+    }
+}
+</code></pre>
+<p>仅仅用小于 20 行的代码，你就可以实现一个计数程序，统计每次你点击和前台显示 App 的次数。<br>
+<img src="https://ultimateHandsomeBoy666.github.io//post-images/1615724725735.png" alt="房子.png" loading="lazy"><br>
+这样的代码虽然简单，但是却难以扩展成一个大型项目，就像上图中的小房子一样，有很多问题：<br>
+1、如果你旋转你的设备，<code>count</code> 会被重置为 0<br>
+2、这样的代码很难进行单元测试<br>
+3、把所有东西都放在一个 class 里面，会让开发者变笨变迟钝。也许你是个菜鸟，但你一定不想变成笨笨的开发者。</p>
+<h2 id="代码架构">代码架构</h2>
+<p>有许多中方法可以更好地组织你的代码结构。最基本的方法就是把代码拆分成不同的 class ，我们称其为 <strong>关注点分离</strong>。<br>
+你可能听说过 MVP 、MVC 、MVVM...如果你很了解这些概念并且运用自如，那么你可以不用看这篇文章了，去喝杯咖啡然后干别的事情吧</p>
+<p>如果不是的话，那么请继续读下去...</p>
+<p>简单来说，通过把逻辑代码尽可能多地从 Activity 当中移到别的类当中就可以实现关注点分离。你地 Activity 只会去处理和 Android 本身相关地工作，以及 UI 的更新。让别的类来处理重要的逻辑事务。<br>
+<img src="https://ultimateHandsomeBoy666.github.io//post-images/1615724796401.png" alt="分离视图和逻辑.png" loading="lazy"><br>
+这样的话。任何 LifeCycle 事件都由 Activity 通知 Logic class ，同时对于任何数据的改变，你的 Logic class 都会将其通知到 Activity 。<br>
+很简单吧？虽然听起来很简单，但是每个人具体实现的方式都不同。这就是 MVP 、MVC  、MVVM （我甚至听过 MVVMI）的由来。即使是同一种架构，代码写法也会有许多不同。</p>
+<h2 id="谷歌看不下去了">谷歌看不下去了</h2>
+<p>开发者使用各种架构、各种方法来分离视图和逻辑层，那么哪种是最好的呢？人们忍不住问谷歌。于是在 2017 的 Google IO 大会上，Google 决定提出他自己的解决方案。这就是我们说的 Android Architecture Components (安卓架构组件)。<br>
+如下图所示，看起来和前文的图几乎一样，但是有了更清楚的命名。<br>
+<img src="https://ultimateHandsomeBoy666.github.io//post-images/1615724887879.png" alt="" loading="lazy"></p>
+<h2 id="什么是-mvvmmodel-view-viewmodel">什么是 MVVM（Model View ViewModel)？</h2>
+<p>当你看见 ViewModel 这个词的时候，你可能会很容易的就联想到 MVVM 。但是 MVVM 到底是什么？<br>
+简单来说，它是基于 <a href="%5Bhttps://en.wikipedia.org/wiki/Observer_pattern%5D(https://en.wikipedia.org/wiki/Observer_pattern)">观察者</a> 模式实现的架构。<br>
+在这种模式中，信息的提供者并不知道谁需要他去提供这些信息。但是对这些信息感兴趣的人会对其进行订阅，一旦信息发布，就可以获取到需要的信息。<br>
+<img src="https://ultimateHandsomeBoy666.github.io//post-images/1615724954175.png" alt="就像你订阅一个 B 站 UP 主一样，他们一更新，你就能得到通知" loading="lazy"><br>
+这样，你大概就能猜到：<br>
+1、ViewModel 通过 Activity 的 LifeCycle 对象订阅 Activity ，以便在 LifeCycleEvents 发生时得到通知<br>
+2、Activity 通过ViewModel 的 LiveData 对象订阅 ViewModel ，以便在数据更新时得到通知</p>
+<h2 id="使用安卓架构组件">使用安卓架构组件</h2>
+<p>好了，理论已经谈得足够多了，现在让我们来看看怎么在代码中使用他们。</p>
+<h3 id="添加依赖">添加依赖</h3>
+<p>在我给出的这个例子中，在 app 的 build.gradle 中添加下面的依赖就足够了。还有很多其他的库，但是现在不需要它们。</p>
+<pre><code>implementation &quot;android.arch.lifecycle:extensions:1.1.0&quot;
+</code></pre>
+<h3 id="viewmodel-类和它的-livedata">ViewModel 类和它的 LiveData</h3>
+<p>依赖添加完之后，就创建一个 ViewModel 类</p>
+<pre><code class="language-java">class MyViewModel(private var count: Int = 0) : ViewModel() {
+        val changeNotifier = MutableLiveData&lt;Int&gt;()
+        fun increment() { changeNotifier.value = ++ count }
+}
+</code></pre>
+<p>为了能够更简单地在 Activity 中使用它，最好是继承自 <code>ViewModel</code> 。现在这个类中包含了<code>count</code>变量，在我们点击或者 activity 出现在前台时，我们会用它进行 UI 的更新。除此之外，还包含了 名为 <code>changeNotifier</code>的 MutableLiveData 。只要<code>count</code>发生改变，我仅需要相应地更新 changeNotifier.value ，不论是谁订阅了它，都能获取更新的数据。</p>
+<h3 id="在-mainactivity-中使用-viewmodel">在 MainActivity 中使用 ViewModel</h3>
+<p>完成了上述工作，现在我们需要把这个 ViewModel 类提供给我们的 MainActivity。</p>
+<pre><code class="language-java">class MainActivity : AppCompatActivity() {
+    private val viewModel: MyViewModel by lazy {
+        ViewModelProviders.of(this).get(MyViewModel::class.java)
+    }
+
+    private val changeObserver =
+            Observer&lt;Int&gt; { 
+                 value -&gt; value?.let { incrementCount(value) } 
+            }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        viewModel.changeNotifier.observe(this, changeObserver)
+        my_container.setOnClickListener { viewModel.increment() }
+    }
+
+    private fun incrementCount(value: Int) {
+        my_text.text = (value).toString()
+    }
+}
+</code></pre>
+<p>我们使用了<code>lazy</code>关键词来创建<code>viewModel</code>，这是谷歌推荐的方法</p>
+<pre><code class="language-java">private val viewModel: MyViewModel by lazy {
+        ViewModelProviders.of(this).get(MyViewModel::class.java)
+    }
+</code></pre>
+<p>之后， 我们的代码写出了获取消息的行为以及获得消息后干什么。在 Kotlin 中，我们使用 lambda 表达式，这样会让代码看起来更干净。</p>
+<pre><code class="language-java">private val changeObserver =
+            Observer&lt;Int&gt; { 
+                 value -&gt; value?.let { incrementCount(value) } 
+            }
+</code></pre>
+<p>之后我们必须使用下面的代码将 <code>changeObserver</code>注册到<code>viewModel</code>。</p>
+<pre><code class="language-java">viewModel.changeNotifier.observe(this, changeObserver)
+</code></pre>
+<p>最后， 我们需要一个方法从 UI 去触发数据的变化。在这个例子中是通过点击事件。</p>
+<pre><code class="language-java">my_container.setOnClickListener { viewModel.increment() }
+</code></pre>
+<figure data-type="image" tabindex="1"><img src="https://ultimateHandsomeBoy666.github.io//post-images/1615725024720.png" alt="事件触发流程" loading="lazy"></figure>
+<p>从 MainActivity 到 ViewModel  再回到 MainActivity 就像是一趟往返的路途。我们并没有把所有的事情都放到 MainActivity 中来做，这样虽然看起来复杂了一点，但是我们却搭建了一个好的 App 架构。这样就能把逻辑代码全部转移到 ViewModel 中而不是 MainActivity 。</p>
+<h3 id="让-viewmodel-感知到-activity-的生命周期变化">让 ViewModel 感知到 Activity 的生命周期变化</h3>
+<p>为了让 ViewModel 感知到 Activity 的生命周期变化，我们需要让它实现 <code>LifeCycleObserver</code>接口。</p>
+<pre><code class="language-java">class MyViewModel(private var count: Int = 0) : ViewModel(),   
+    LifecycleObserver {
+    val changeNotifier = MutableLiveData&lt;Int&gt;()
+    fun increment() { changeNotifier.value = ++count }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME) 
+    fun onResume() { increment() }
+}
+</code></pre>
+<p>你的 <code>viewModel</code>依赖于哪一个生命周期，就添加一个 @OnLifecycleEvent 注解。<br>
+在这个例子中，我们只对 ON_RESUME 感兴趣。<br>
+做完这步后，我们需要让<code>viewModel</code>订阅 <code>MainActivity</code>的<code>Lifecycle</code>事件。在最新版本的 <code>AppCompatActivity</code> 类中，<code>LifeCycle</code>已经添加进来了。所以我们可以轻松地在<code>onCreate</code>函数中实现如下代码：</p>
+<pre><code class="language-java">override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        viewModel.changeNotifier.observe(this, changeObserver)
+        lifecycle.addObserver(viewModel)             
+        my_container.setOnClickListener { viewModel.increment() }
+    }
+</code></pre>
+<p><img src="https://ultimateHandsomeBoy666.github.io//post-images/1615725047082.png" alt="生命周期感知" loading="lazy"><br>
+现在<code>viewModel</code>就不需要让<code>MainActivity</code>在每个生命周期事件发生时主动地调用<code>viewModel</code>的方法。只需要合适的<code>@OnLifeCycleEvent</code>注解，<code>viewModel</code>就会被通知到并且执行相应的逻辑。</p>
+<h3 id="妈妈再也不用担心我旋转设备了">妈妈再也不用担心我旋转设备了</h3>
+<p>现在我们可以轻松地扩展我们地 App ，在<code>viewModel</code>中实现更复杂地逻辑。并且，相比于<code>Activity</code>,我们在可以在<code>viewModel</code>中更好地进行单元测试。<br>
+除此之外，最重要地一点时，当我们旋转设备时，<code>count</code>不会再被重置为 0 。它的值被保存下来了，因为 Android 内部实现了在 ViewModel 中保存数据的机制，不需要你去显式地保存它。</p>
+<h3 id="但也不要高兴地太早">但也不要高兴地太早</h3>
+<p>虽然 ViewModel 可以很好地保存数据，但是这并不意味着<code>onSaveInstanceState</code>就没有用武之地了。如果 Activity 被进程被系统杀死，那么<code>count</code>地值就不会被保存。<br>
+为了处理这个问题，我添加了处理<code>savedInstanceState</code>的逻辑代码。</p>
+<pre><code class="language-java">class MainActivity : AppCompatActivity() {
+    private val viewModel: MyViewModel by lazy {
+        ViewModelProviders.of(this).get(MyViewModel::class.java)
+    }
+
+    private val changeObserver = Observer&lt;Int&gt; { 
+                  value -&gt; value?.let { incrementCount(value) } 
+            }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        viewModel.restoreState(savedInstanceState)
+        viewModel.changeNotifier.observe(this, changeObserver)
+        lifecycle.addObserver(viewModel)
+        my_container.setOnClickListener { viewModel.increment() }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        viewModel.saveState(outState)
+    }
+
+    private fun incrementCount(value: Int) {
+        my_text.text = (value).toString()
+    }
+}
+
+class MyViewModel(private var count: Int = 0) : ViewModel(), 
+    LifecycleObserver {
+    companion object { const val COUNT_KEY = &quot;CountKey&quot; }
+
+    val changeNotifier = MutableLiveData&lt;Int&gt;()
+
+    fun increment() { changeNotifier.value = ++count }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME) 
+    fun onResume() { increment() }
+
+    fun saveState(outState: Bundle) {
+        outState.putInt(COUNT_KEY, count)
+    }
+
+    fun restoreState(inState: Bundle?) {
+        inState?.let { count = inState.getInt(COUNT_KEY) }
+    }
+}
+</code></pre>
+<p>这样，不论是旋转设备还是进程被杀死，你的<code>count</code>值都可以被保留下来。</p>
+<p>源码可以从以下链接获得：<br>
+https://github.com/elye/demo_android_architecture_components?source=post_page-----29b29d3a381----------------------</p>
+<h3 id="关于-viewmodel-再说一点">关于 ViewModel ，再说一点</h3>
+<p>可能上面最终的代码看起来比一开始直接在 Activity 中处理所有事情的代码要长很多。但是，如同画房屋设计图一样，想要实现更多细节，就必须有合理的组织架构，即把逻辑代码从 Activity 当中抽离出来。<br>
+我的观点是，如果你已经有熟悉的架构，并且运用自如，那么你就可以不用安卓架构组件， Android Architecture Componens 。除非它能为代码提供更好的表现，比如在杀死和恢复应用进程时保留变量值。</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Android 实现图表实时更新]]></title>
         <id>https://ultimateHandsomeBoy666.github.io/post/android-shi-xian-tu-biao-shi-shi-geng-xin/</id>

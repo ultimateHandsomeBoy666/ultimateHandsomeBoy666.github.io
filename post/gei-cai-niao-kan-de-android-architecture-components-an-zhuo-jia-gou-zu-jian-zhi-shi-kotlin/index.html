@@ -1,0 +1,374 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>给菜鸟看的-Android-Architecture-Components-(安卓架构组件)知识（kotlin） | 牛蛙的博客</title>
+<link rel="shortcut icon" href="https://ultimateHandsomeBoy666.github.io//favicon.ico?v=1615725913877">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://ultimateHandsomeBoy666.github.io//styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="给菜鸟看的-Android-Architecture-Components-(安卓架构组件)知识（kotlin） | 牛蛙的博客 - Atom Feed" href="https://ultimateHandsomeBoy666.github.io//atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="本文为译文，原文链接：
+https://medium.com/@elye.project/android-architecture-components-for-dummies-in-kotlin-50-lines-of-code-29b2..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://ultimateHandsomeBoy666.github.io/">
+  <img class="avatar" src="https://ultimateHandsomeBoy666.github.io//images/avatar.png?v=1615725913877" alt="">
+  </a>
+  <h1 class="site-title">
+    牛蛙的博客
+  </h1>
+  <p class="site-description">
+    Hello!
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              给菜鸟看的-Android-Architecture-Components-(安卓架构组件)知识（kotlin）
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-03-14
+              </span>
+              <span>
+                9 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <p>本文为译文，原文链接：<br>
+<a href="https://medium.com/@elye.project/android-architecture-components-for-dummies-in-kotlin-50-lines-of-code-29b29d3a381">https://medium.com/@elye.project/android-architecture-components-for-dummies-in-kotlin-50-lines-of-code-29b29d3a381</a></p>
+<p>以前写 android 程序时，只需要把所有代码写在 Activity 中就可以了，比如：</p>
+<pre><code class="language-java">class MainActivity : AppCompatActivity() {
+    private var count = 0
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        my_container.setOnClickListener { incrementCount() }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        incrementCount()
+    }
+
+    private fun incrementCount() {
+        my_text.text = (++count).toString()
+    }
+}
+</code></pre>
+<p>仅仅用小于 20 行的代码，你就可以实现一个计数程序，统计每次你点击和前台显示 App 的次数。<br>
+<img src="https://ultimateHandsomeBoy666.github.io//post-images/1615724725735.png" alt="房子.png" loading="lazy"><br>
+这样的代码虽然简单，但是却难以扩展成一个大型项目，就像上图中的小房子一样，有很多问题：<br>
+1、如果你旋转你的设备，<code>count</code> 会被重置为 0<br>
+2、这样的代码很难进行单元测试<br>
+3、把所有东西都放在一个 class 里面，会让开发者变笨变迟钝。也许你是个菜鸟，但你一定不想变成笨笨的开发者。</p>
+<h2 id="代码架构">代码架构</h2>
+<p>有许多中方法可以更好地组织你的代码结构。最基本的方法就是把代码拆分成不同的 class ，我们称其为 <strong>关注点分离</strong>。<br>
+你可能听说过 MVP 、MVC 、MVVM...如果你很了解这些概念并且运用自如，那么你可以不用看这篇文章了，去喝杯咖啡然后干别的事情吧</p>
+<p>如果不是的话，那么请继续读下去...</p>
+<p>简单来说，通过把逻辑代码尽可能多地从 Activity 当中移到别的类当中就可以实现关注点分离。你地 Activity 只会去处理和 Android 本身相关地工作，以及 UI 的更新。让别的类来处理重要的逻辑事务。<br>
+<img src="https://ultimateHandsomeBoy666.github.io//post-images/1615724796401.png" alt="分离视图和逻辑.png" loading="lazy"><br>
+这样的话。任何 LifeCycle 事件都由 Activity 通知 Logic class ，同时对于任何数据的改变，你的 Logic class 都会将其通知到 Activity 。<br>
+很简单吧？虽然听起来很简单，但是每个人具体实现的方式都不同。这就是 MVP 、MVC  、MVVM （我甚至听过 MVVMI）的由来。即使是同一种架构，代码写法也会有许多不同。</p>
+<h2 id="谷歌看不下去了">谷歌看不下去了</h2>
+<p>开发者使用各种架构、各种方法来分离视图和逻辑层，那么哪种是最好的呢？人们忍不住问谷歌。于是在 2017 的 Google IO 大会上，Google 决定提出他自己的解决方案。这就是我们说的 Android Architecture Components (安卓架构组件)。<br>
+如下图所示，看起来和前文的图几乎一样，但是有了更清楚的命名。<br>
+<img src="https://ultimateHandsomeBoy666.github.io//post-images/1615724887879.png" alt="" loading="lazy"></p>
+<h2 id="什么是-mvvmmodel-view-viewmodel">什么是 MVVM（Model View ViewModel)？</h2>
+<p>当你看见 ViewModel 这个词的时候，你可能会很容易的就联想到 MVVM 。但是 MVVM 到底是什么？<br>
+简单来说，它是基于 <a href="%5Bhttps://en.wikipedia.org/wiki/Observer_pattern%5D(https://en.wikipedia.org/wiki/Observer_pattern)">观察者</a> 模式实现的架构。<br>
+在这种模式中，信息的提供者并不知道谁需要他去提供这些信息。但是对这些信息感兴趣的人会对其进行订阅，一旦信息发布，就可以获取到需要的信息。<br>
+<img src="https://ultimateHandsomeBoy666.github.io//post-images/1615724954175.png" alt="就像你订阅一个 B 站 UP 主一样，他们一更新，你就能得到通知" loading="lazy"><br>
+这样，你大概就能猜到：<br>
+1、ViewModel 通过 Activity 的 LifeCycle 对象订阅 Activity ，以便在 LifeCycleEvents 发生时得到通知<br>
+2、Activity 通过ViewModel 的 LiveData 对象订阅 ViewModel ，以便在数据更新时得到通知</p>
+<h2 id="使用安卓架构组件">使用安卓架构组件</h2>
+<p>好了，理论已经谈得足够多了，现在让我们来看看怎么在代码中使用他们。</p>
+<h3 id="添加依赖">添加依赖</h3>
+<p>在我给出的这个例子中，在 app 的 build.gradle 中添加下面的依赖就足够了。还有很多其他的库，但是现在不需要它们。</p>
+<pre><code>implementation &quot;android.arch.lifecycle:extensions:1.1.0&quot;
+</code></pre>
+<h3 id="viewmodel-类和它的-livedata">ViewModel 类和它的 LiveData</h3>
+<p>依赖添加完之后，就创建一个 ViewModel 类</p>
+<pre><code class="language-java">class MyViewModel(private var count: Int = 0) : ViewModel() {
+        val changeNotifier = MutableLiveData&lt;Int&gt;()
+        fun increment() { changeNotifier.value = ++ count }
+}
+</code></pre>
+<p>为了能够更简单地在 Activity 中使用它，最好是继承自 <code>ViewModel</code> 。现在这个类中包含了<code>count</code>变量，在我们点击或者 activity 出现在前台时，我们会用它进行 UI 的更新。除此之外，还包含了 名为 <code>changeNotifier</code>的 MutableLiveData 。只要<code>count</code>发生改变，我仅需要相应地更新 changeNotifier.value ，不论是谁订阅了它，都能获取更新的数据。</p>
+<h3 id="在-mainactivity-中使用-viewmodel">在 MainActivity 中使用 ViewModel</h3>
+<p>完成了上述工作，现在我们需要把这个 ViewModel 类提供给我们的 MainActivity。</p>
+<pre><code class="language-java">class MainActivity : AppCompatActivity() {
+    private val viewModel: MyViewModel by lazy {
+        ViewModelProviders.of(this).get(MyViewModel::class.java)
+    }
+
+    private val changeObserver =
+            Observer&lt;Int&gt; { 
+                 value -&gt; value?.let { incrementCount(value) } 
+            }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        viewModel.changeNotifier.observe(this, changeObserver)
+        my_container.setOnClickListener { viewModel.increment() }
+    }
+
+    private fun incrementCount(value: Int) {
+        my_text.text = (value).toString()
+    }
+}
+</code></pre>
+<p>我们使用了<code>lazy</code>关键词来创建<code>viewModel</code>，这是谷歌推荐的方法</p>
+<pre><code class="language-java">private val viewModel: MyViewModel by lazy {
+        ViewModelProviders.of(this).get(MyViewModel::class.java)
+    }
+</code></pre>
+<p>之后， 我们的代码写出了获取消息的行为以及获得消息后干什么。在 Kotlin 中，我们使用 lambda 表达式，这样会让代码看起来更干净。</p>
+<pre><code class="language-java">private val changeObserver =
+            Observer&lt;Int&gt; { 
+                 value -&gt; value?.let { incrementCount(value) } 
+            }
+</code></pre>
+<p>之后我们必须使用下面的代码将 <code>changeObserver</code>注册到<code>viewModel</code>。</p>
+<pre><code class="language-java">viewModel.changeNotifier.observe(this, changeObserver)
+</code></pre>
+<p>最后， 我们需要一个方法从 UI 去触发数据的变化。在这个例子中是通过点击事件。</p>
+<pre><code class="language-java">my_container.setOnClickListener { viewModel.increment() }
+</code></pre>
+<figure data-type="image" tabindex="1"><img src="https://ultimateHandsomeBoy666.github.io//post-images/1615725024720.png" alt="事件触发流程" loading="lazy"></figure>
+<p>从 MainActivity 到 ViewModel  再回到 MainActivity 就像是一趟往返的路途。我们并没有把所有的事情都放到 MainActivity 中来做，这样虽然看起来复杂了一点，但是我们却搭建了一个好的 App 架构。这样就能把逻辑代码全部转移到 ViewModel 中而不是 MainActivity 。</p>
+<h3 id="让-viewmodel-感知到-activity-的生命周期变化">让 ViewModel 感知到 Activity 的生命周期变化</h3>
+<p>为了让 ViewModel 感知到 Activity 的生命周期变化，我们需要让它实现 <code>LifeCycleObserver</code>接口。</p>
+<pre><code class="language-java">class MyViewModel(private var count: Int = 0) : ViewModel(),   
+    LifecycleObserver {
+    val changeNotifier = MutableLiveData&lt;Int&gt;()
+    fun increment() { changeNotifier.value = ++count }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME) 
+    fun onResume() { increment() }
+}
+</code></pre>
+<p>你的 <code>viewModel</code>依赖于哪一个生命周期，就添加一个 @OnLifecycleEvent 注解。<br>
+在这个例子中，我们只对 ON_RESUME 感兴趣。<br>
+做完这步后，我们需要让<code>viewModel</code>订阅 <code>MainActivity</code>的<code>Lifecycle</code>事件。在最新版本的 <code>AppCompatActivity</code> 类中，<code>LifeCycle</code>已经添加进来了。所以我们可以轻松地在<code>onCreate</code>函数中实现如下代码：</p>
+<pre><code class="language-java">override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        viewModel.changeNotifier.observe(this, changeObserver)
+        lifecycle.addObserver(viewModel)             
+        my_container.setOnClickListener { viewModel.increment() }
+    }
+</code></pre>
+<p><img src="https://ultimateHandsomeBoy666.github.io//post-images/1615725047082.png" alt="生命周期感知" loading="lazy"><br>
+现在<code>viewModel</code>就不需要让<code>MainActivity</code>在每个生命周期事件发生时主动地调用<code>viewModel</code>的方法。只需要合适的<code>@OnLifeCycleEvent</code>注解，<code>viewModel</code>就会被通知到并且执行相应的逻辑。</p>
+<h3 id="妈妈再也不用担心我旋转设备了">妈妈再也不用担心我旋转设备了</h3>
+<p>现在我们可以轻松地扩展我们地 App ，在<code>viewModel</code>中实现更复杂地逻辑。并且，相比于<code>Activity</code>,我们在可以在<code>viewModel</code>中更好地进行单元测试。<br>
+除此之外，最重要地一点时，当我们旋转设备时，<code>count</code>不会再被重置为 0 。它的值被保存下来了，因为 Android 内部实现了在 ViewModel 中保存数据的机制，不需要你去显式地保存它。</p>
+<h3 id="但也不要高兴地太早">但也不要高兴地太早</h3>
+<p>虽然 ViewModel 可以很好地保存数据，但是这并不意味着<code>onSaveInstanceState</code>就没有用武之地了。如果 Activity 被进程被系统杀死，那么<code>count</code>地值就不会被保存。<br>
+为了处理这个问题，我添加了处理<code>savedInstanceState</code>的逻辑代码。</p>
+<pre><code class="language-java">class MainActivity : AppCompatActivity() {
+    private val viewModel: MyViewModel by lazy {
+        ViewModelProviders.of(this).get(MyViewModel::class.java)
+    }
+
+    private val changeObserver = Observer&lt;Int&gt; { 
+                  value -&gt; value?.let { incrementCount(value) } 
+            }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        viewModel.restoreState(savedInstanceState)
+        viewModel.changeNotifier.observe(this, changeObserver)
+        lifecycle.addObserver(viewModel)
+        my_container.setOnClickListener { viewModel.increment() }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        viewModel.saveState(outState)
+    }
+
+    private fun incrementCount(value: Int) {
+        my_text.text = (value).toString()
+    }
+}
+
+class MyViewModel(private var count: Int = 0) : ViewModel(), 
+    LifecycleObserver {
+    companion object { const val COUNT_KEY = &quot;CountKey&quot; }
+
+    val changeNotifier = MutableLiveData&lt;Int&gt;()
+
+    fun increment() { changeNotifier.value = ++count }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME) 
+    fun onResume() { increment() }
+
+    fun saveState(outState: Bundle) {
+        outState.putInt(COUNT_KEY, count)
+    }
+
+    fun restoreState(inState: Bundle?) {
+        inState?.let { count = inState.getInt(COUNT_KEY) }
+    }
+}
+</code></pre>
+<p>这样，不论是旋转设备还是进程被杀死，你的<code>count</code>值都可以被保留下来。</p>
+<p>源码可以从以下链接获得：<br>
+https://github.com/elye/demo_android_architecture_components?source=post_page-----29b29d3a381----------------------</p>
+<h3 id="关于-viewmodel-再说一点">关于 ViewModel ，再说一点</h3>
+<p>可能上面最终的代码看起来比一开始直接在 Activity 中处理所有事情的代码要长很多。但是，如同画房屋设计图一样，想要实现更多细节，就必须有合理的组织架构，即把逻辑代码从 Activity 当中抽离出来。<br>
+我的观点是，如果你已经有熟悉的架构，并且运用自如，那么你就可以不用安卓架构组件， Android Architecture Componens 。除非它能为代码提供更好的表现，比如在杀死和恢复应用进程时保留变量值。</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E4%BB%A3%E7%A0%81%E6%9E%B6%E6%9E%84">代码架构</a></li>
+<li><a href="#%E8%B0%B7%E6%AD%8C%E7%9C%8B%E4%B8%8D%E4%B8%8B%E5%8E%BB%E4%BA%86">谷歌看不下去了</a></li>
+<li><a href="#%E4%BB%80%E4%B9%88%E6%98%AF-mvvmmodel-view-viewmodel">什么是 MVVM（Model View ViewModel)？</a></li>
+<li><a href="#%E4%BD%BF%E7%94%A8%E5%AE%89%E5%8D%93%E6%9E%B6%E6%9E%84%E7%BB%84%E4%BB%B6">使用安卓架构组件</a>
+<ul>
+<li><a href="#%E6%B7%BB%E5%8A%A0%E4%BE%9D%E8%B5%96">添加依赖</a></li>
+<li><a href="#viewmodel-%E7%B1%BB%E5%92%8C%E5%AE%83%E7%9A%84-livedata">ViewModel 类和它的 LiveData</a></li>
+<li><a href="#%E5%9C%A8-mainactivity-%E4%B8%AD%E4%BD%BF%E7%94%A8-viewmodel">在 MainActivity 中使用 ViewModel</a></li>
+<li><a href="#%E8%AE%A9-viewmodel-%E6%84%9F%E7%9F%A5%E5%88%B0-activity-%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E5%8F%98%E5%8C%96">让 ViewModel 感知到 Activity 的生命周期变化</a></li>
+<li><a href="#%E5%A6%88%E5%A6%88%E5%86%8D%E4%B9%9F%E4%B8%8D%E7%94%A8%E6%8B%85%E5%BF%83%E6%88%91%E6%97%8B%E8%BD%AC%E8%AE%BE%E5%A4%87%E4%BA%86">妈妈再也不用担心我旋转设备了</a></li>
+<li><a href="#%E4%BD%86%E4%B9%9F%E4%B8%8D%E8%A6%81%E9%AB%98%E5%85%B4%E5%9C%B0%E5%A4%AA%E6%97%A9">但也不要高兴地太早</a></li>
+<li><a href="#%E5%85%B3%E4%BA%8E-viewmodel-%E5%86%8D%E8%AF%B4%E4%B8%80%E7%82%B9">关于 ViewModel ，再说一点</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://ultimateHandsomeBoy666.github.io/post/android-shi-xian-tu-biao-shi-shi-geng-xin/">
+              <h3 class="post-title">
+                Android 实现图表实时更新
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://ultimateHandsomeBoy666.github.io//atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

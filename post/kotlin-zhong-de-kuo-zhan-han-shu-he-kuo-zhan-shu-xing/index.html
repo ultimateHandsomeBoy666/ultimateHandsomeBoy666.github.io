@@ -1,0 +1,327 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kotlin 中的扩展函数和扩展属性 | 牛蛙的博客</title>
+<link rel="shortcut icon" href="https://ultimateHandsomeBoy666.github.io//favicon.ico?v=1615725913877">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://ultimateHandsomeBoy666.github.io//styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Kotlin 中的扩展函数和扩展属性 | 牛蛙的博客 - Atom Feed" href="https://ultimateHandsomeBoy666.github.io//atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="Kotlin 扩展函数
+在 android 开发中，经常会使用到各种 utils 工具类。比如 ViewUtils， ScreenUtils， FileUtils 等，
+这些类往往会提供一些静态方法，让我们进行一些通用的操作。
+或者，我们常..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://ultimateHandsomeBoy666.github.io/">
+  <img class="avatar" src="https://ultimateHandsomeBoy666.github.io//images/avatar.png?v=1615725913877" alt="">
+  </a>
+  <h1 class="site-title">
+    牛蛙的博客
+  </h1>
+  <p class="site-description">
+    Hello!
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Kotlin 中的扩展函数和扩展属性
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-03-14
+              </span>
+              <span>
+                6 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h3 id="kotlin-扩展函数">Kotlin 扩展函数</h3>
+<p>在 android 开发中，经常会使用到各种 utils 工具类。比如 ViewUtils， ScreenUtils， FileUtils 等，</p>
+<p>这些类往往会提供一些静态方法，让我们进行一些通用的操作。</p>
+<p>或者，我们常常会希望给某一个类增加一两个小属性或者方法，在用到这个类的地方都能调用，方便我们的开发。比如，我们希望每个 String 对象都能有一个方法，返回这个 String 对象包含的大写字母个数。</p>
+<p>我们可能会在某个 utils 中这样写</p>
+<pre><code class="language-java">public static int getStringCapitalCount(String s) throws Exception {
+        if (s == null) {
+            throw new Exception(&quot;string should not be null!&quot;);
+        }
+        int count = 0;
+        for (int i = 0; i &lt; s.length(); i++) {
+            char c = s.charAt(i);
+            if (c &gt;= 65 &amp;&amp; c &lt;= 90) {
+                count++;
+            }
+        }
+        return count;
+    }
+</code></pre>
+<p>或者, 我们会考虑使用一个子类来继承这个父类，然后给子类添加这个方法，在代码中使用子类。当然，String 是不可继承的。</p>
+<p>这样写，并没有什么问题，一贯的 java 写法。</p>
+<p>但是在 Kotlin 中，我们有了更优雅的方式。既然我们最开始的目标是希望 String 类型多一个方法，那么我们的代码也应该写得像这样，如下：</p>
+<pre><code class="language-kotlin">// 函数名以类名作为前缀： ClassName.funName
+// 该前缀叫做 接收者类型（receiver type）
+fun String.capitalCount(): Int{ 
+    var count = 0
+    this.forEach { // this 指的是类的实例对象, 叫 接收者对象（receiver object）
+        if (it.toInt() in 65..90) {
+            count ++
+        }
+    }
+    return count
+}
+</code></pre>
+<p>然后，我们可以在任何使用到 String 的地方，调用这个方法，就好像 String 类型本来就拥有这个方法一样。</p>
+<pre><code class="language-kotlin">fun main() {
+    val s = &quot;AbCdEfg&quot;
+    println(s.capitalCount())
+}
+</code></pre>
+<p>这就是 Kotlin 中的扩展函数。</p>
+<p>一般，将扩展函数定义在一个 Extensions.kt 的文件中，最外层直接写函数就可以，不需要像 java 一样定义一个类。这样定义的函数是顶层函数，类似于 java 中的静态函数，可以在任何地方被调用。</p>
+<figure data-type="image" tabindex="1"><img src="https://ultimateHandsomeBoy666.github.io//post-images/1615725849618.png" alt="" loading="lazy"></figure>
+<p>类似地， 我们再写一个例子，比如经常用到的将 Date 转为 String 的函数，我们使用扩展函数的方式：</p>
+<pre><code class="language-kotlin">fun Date.dateString(): String{
+    val dateFormat = SimpleDateFormat(&quot;yyyy-MM-dd&quot;, Locale.getDefault())
+    return dateFormat.format(this)
+}
+
+// 调用时
+fun main() {
+    println(Date().dateString())
+}
+</code></pre>
+<p><strong>注意</strong></p>
+<ul>
+<li>
+<p>扩展函数虽然看起来像是往类里面添加了成员函数，但是实际上并没有改变类的任何结构。所以，对于类内部 private、protected 以及 internal（模块外访问）修饰的成员变量和函数，是不能够访问到的，编译器会报错。</p>
+<img src="file:///Users/bullfrog/Documents/Gridea/post-images/1615725879056.png" alt="Encapsulation of an Extension Function in Kotlin" style="zoom: 80%;" />
+</li>
+<li>
+<p>如果扩展函数和类内部定义的成员函数重名，那么调用时执行的是类的函数。</p>
+</li>
+<li>
+<p>扩展是静态解析的，调⽤的扩展函数是由函数调⽤所在的表达式的类型来决定的，⽽不是由表达式运⾏时求值结果决定的。例如：</p>
+<pre><code class="language-kotlin">open class Shape
+class Rectangle: Shape()
+fun Shape.getName() = &quot;Shape&quot;
+fun Rectangle.getName() = &quot;Rectangle&quot;
+fun printClassName(s: Shape) {
+println(s.getName())
+}
+printClassName(Rectangle())
+</code></pre>
+<p>这个例子会输出 “Shape” ，因为调用的扩展函数只取决于 s 参数的类型声明，这里它是 Shape 类。</p>
+</li>
+</ul>
+<h3 id="kotlin-扩展属性">Kotlin 扩展属性</h3>
+<p>和扩展函数类似，Kotlin 同样支持扩展属性。比如：</p>
+<pre><code class="language-kotlin">// 给 StringBuilder 类添加扩展属性 firstLetter
+var StringBuilder.firstLetter: Char
+    get() = get(0)
+    set(value) = this.setCharAt(0, value)
+</code></pre>
+<p>可以把扩展属性看作是两个扩展函数，一个是 getter， 一个是 setter 。</p>
+<p>调用时：</p>
+<pre><code class="language-kotlin">fun main(args: Array&lt;String&gt;) {
+    val message = StringBuilder(&quot;hello !&quot;)
+    println(&quot;${message.firstLetter} is the first letter of $message&quot;)
+    message.firstLetter = 'H'
+    println(&quot;${message.firstLetter} is the first letter of $message&quot;)
+}
+</code></pre>
+<p>输出结果：</p>
+<blockquote>
+<p>h is the first letter of hello !</p>
+</blockquote>
+<blockquote>
+<p>H is the first letter of Hello !</p>
+</blockquote>
+<p><strong>注意</strong></p>
+<p>扩展属性没有初始化器，即扩展属性不能初始化，只能使用 getter / setter 来操作扩展属性的值。</p>
+<pre><code class="language-kotlin">val StringBuilder.firsetLetter = 'a' // 这是错误的， 不能初始化扩展属性
+</code></pre>
+<p>这是因为扩展属性并没有真正地插入一个属性到类中，所以扩展属性没有幕后字段（backing field），不能进行初始化。同样，也不能在扩展属性的 setter 里使用 field 关键字。</p>
+<p><strong>配合泛型使用</strong></p>
+<p>可以使用泛型来给多个类添加扩展属性。比如：</p>
+<pre><code class="language-kotlin">// 得到逆序的 string
+val &lt;T&gt; T.reverseString: String
+    get() {
+        return this.toString().reversed() // 实际上 reversed 函数也是 Kotlin String 类型自带的扩展函数
+    }
+</code></pre>
+<h3 id="扩展的-java-代码">扩展的 Java 代码</h3>
+<p>Kotlin 究竟是如何实现扩展函数和扩展属性的呢？</p>
+<p>还是使用之前 String.capitalCount 的例子，反编译后的 java 代码如下：</p>
+<pre><code class="language-java">// Extension.kt 文件会被编译成 ExtensionKt.class
+public final class ExtensionsKt {
+   public static final int capitalCount(@NotNull String $this$capitalCount) {
+      int count = 0;
+      CharSequence $this$forEach$iv = (CharSequence)$this$capitalCount;
+      int $i$f$forEach = false;
+      CharSequence var4 = $this$forEach$iv;
+
+      for(int var5 = 0; var5 &lt; var4.length(); ++var5) {
+         char element$iv = var4.charAt(var5);
+         int var8 = false;
+         if ('A' &lt;= element$iv) {
+            if ('Z' &gt;= element$iv) {
+               ++count;
+            }
+         }
+      }
+ return count;
+}
+</code></pre>
+<p>实际上和在 java util 中实现方法一致，生成了一个以 String 类型为形参的静态方法，而函数形参 this$capitalCount 其实就是在 kotlin 中 this 指代的那个对象。</p>
+<p>再看 StringBuilder.firstLetter 属性的反编译 java 代码：</p>
+<pre><code class="language-java">public static final char getFirstLetter(@NotNull StringBuilder $this$firstLetter) {
+      return $this$firstLetter.charAt(0);
+   }
+
+public static final void setFirstLetter(@NotNull StringBuilder $this$firstLetter, char value) {
+      $this$firstLetter.setCharAt(0, value);
+   }
+</code></pre>
+<p>其实就是生成了两个静态的方法，一个 setter 和 一个 getter。用两个扩展函数也可以达到同样的效果。</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#kotlin-%E6%89%A9%E5%B1%95%E5%87%BD%E6%95%B0">Kotlin 扩展函数</a></li>
+<li><a href="#kotlin-%E6%89%A9%E5%B1%95%E5%B1%9E%E6%80%A7">Kotlin 扩展属性</a></li>
+<li><a href="#%E6%89%A9%E5%B1%95%E7%9A%84-java-%E4%BB%A3%E7%A0%81">扩展的 Java 代码</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://ultimateHandsomeBoy666.github.io/post/gei-cai-niao-kan-de-android-architecture-components-an-zhuo-jia-gou-zu-jian-zhi-shi-kotlin/">
+              <h3 class="post-title">
+                给菜鸟看的-Android-Architecture-Components-(安卓架构组件)知识（kotlin）
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://ultimateHandsomeBoy666.github.io//atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
