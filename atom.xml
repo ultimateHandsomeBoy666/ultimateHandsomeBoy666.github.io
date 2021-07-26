@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ultimateHandsomeBoy666.github.io/</id>
     <title>牛蛙的博客</title>
-    <updated>2021-05-15T09:13:54.929Z</updated>
+    <updated>2021-07-26T16:09:04.633Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ultimateHandsomeBoy666.github.io/"/>
     <link rel="self" href="https://ultimateHandsomeBoy666.github.io/atom.xml"/>
@@ -10,6 +10,188 @@
     <logo>https://ultimateHandsomeBoy666.github.io/images/avatar.png</logo>
     <icon>https://ultimateHandsomeBoy666.github.io/favicon.ico</icon>
     <rights>All rights reserved 2021, 牛蛙的博客</rights>
+    <entry>
+        <title type="html"><![CDATA[一个酷炫的 android 粒子动画库]]></title>
+        <id>https://ultimateHandsomeBoy666.github.io/post/yi-ge-ku-xuan-de-android-li-zi-dong-hua-ku/</id>
+        <link href="https://ultimateHandsomeBoy666.github.io/post/yi-ge-ku-xuan-de-android-li-zi-dong-hua-ku/">
+        </link>
+        <updated>2021-07-26T16:06:26.000Z</updated>
+        <content type="html"><![CDATA[<h3 id="一-灵感">一、灵感</h3>
+<p>做这个粒子动画库的灵感来自于 MIUI 卸载应用时的动画：</p>
+<p><img src="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/1a5d408b323a4b1c97c57d1cb180f659~tplv-k3u1fbpfcp-watermark.image" 
+width = "180" height = "400"/></p>
+<p>这个爆炸的粒子效果看起来很酷炫，而且粒子颜色是从 icon 中拿到的。</p>
+<p>最开始我简单实现了类似爆炸的效果，后来想到可以直接扩展一下，写一个通用的粒子动画库。</p>
+<h3 id="二-使用">二、使用</h3>
+<p>项目地址：https://github.com/ultimateHandsomeBoy666/Particle</p>
+<p>Particle 是一个使用 kotlin 编写的粒子动画库，可以用几行代码轻松搞定一个粒子动画。同时也支持高度自定义的粒子动画轨迹，可以打造出非常炫酷的自定义动画。这个项目发布了 0.1 版本在 JitPack 上，按如下操作引入：</p>
+<p>在根目录的 <code>build.gradle</code> 中的 <code>allprojects</code> 中添加(注意不是 <code>buildScript</code>)：</p>
+<pre><code class="language-groovy">allprojects {
+	repositories {
+		...
+		maven { url 'https://jitpack.io' }
+	}
+}
+</code></pre>
+<p>然后在你的项目中引入依赖即可。</p>
+<pre><code class="language-gr">implementation 'com.github.ultimateHandsomeBoy666:Particle:0.1'
+</code></pre>
+<p>在引入了 Particle 之后，只需要下面几行简单的代码，就可以实现上面的粒子爆炸效果：</p>
+<pre><code class="language-kotlin">Particles.with(context, container) // container 是粒子动画的宿主父 ViewGroup
+		.colorFromView(button)// 从 button 中采样颜色
+		.particleNum(200)// 一共 200 个粒子
+		.anchor(button)// 把 button 作为动画的锚点
+		.shape(Shape.CIRCLE)// 粒子形状是圆形
+		.radius(2, 6)// 粒子随机半径 2~6
+		.anim(ParticleAnimation.EXPLOSION)// 使用爆炸动画
+		.start()
+</code></pre>
+<p><img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/da7082f52a674bafb5eeb86eb25de7c4~tplv-k3u1fbpfcp-watermark.image" 
+width = "180" height = "400"/></p>
+<h3 id="三-粒子形状">三、粒子形状</h3>
+<p>粒子的形状支持<strong>圆形、三角形、矩形、五角星以及矢量图形及位图，并且支持多种图形粒子混合</strong>。</p>
+<p>下面详细说明。</p>
+<h4 id="shapecircle-和-shapehollowcircle"><code>Shape.CIRCLE</code> 和 <code>Shape.HOLLOWCIRCLE</code></h4>
+<ul>
+<li>
+<p>圆形和空心圆</p>
+</li>
+<li>
+<p>使用 <code>radius</code>  定义圆的大小。空心圆使用 <code>strokeWidth</code> 定义粗细。</p>
+</li>
+</ul>
+<h4 id="shapetriangle-和-shapehollowtriangle"><code>Shape.TRIANGLE</code> 和 <code>Shape.HOLLOWTRIANGLE</code></h4>
+<ul>
+<li>
+<p>实心三角形和空心三角形</p>
+</li>
+<li>
+<p>使用 <code>width</code> 和 <code>height</code>  定义三角形的大小。空心三角形使用 <code>strokeWidth</code> 定义粗细。</p>
+</li>
+</ul>
+<h4 id="shaperectangle-和-shapehollowrectangle"><code>Shape.RECTANGLE</code> 和 <code>Shape.HOLLOWRECTANGLE</code></h4>
+<ul>
+<li>
+<p>实心矩形和空心矩形。</p>
+</li>
+<li>
+<p>使用 <code>width</code> 和 <code>height</code>  定义矩形的大小。空心矩形使用 <code>strokeWidth</code> 定义粗细。</p>
+</li>
+</ul>
+<h4 id="shapepentacle-和-shapehollowpentacle"><code>Shape.PENTACLE</code> 和 <code>Shape.HOLLOWPENTACLE</code></h4>
+<ul>
+<li>
+<p>实心五角星和空心五角星</p>
+</li>
+<li>
+<p>使用 <code>radius</code>  定义五角星外接圆的大小。空心五角星使用 <code>strokeWidth</code> 定义粗细。</p>
+</li>
+</ul>
+<h4 id="shapebitmap"><code>Shape.BITMAP</code></h4>
+<ul>
+<li>
+<p>支持位图。</p>
+</li>
+<li>
+<p>支持矢量图，只需要把矢量图 xml 的资源 id 传入即可。</p>
+</li>
+<li>
+<p>图片粒子不受 color 设置的影响。</p>
+</li>
+</ul>
+<p>除了上述单种图形以外，还支持多种图形的混合粒子，如下：</p>
+<p><img src="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/85bcaf99629243aaa897d3069b698e25~tplv-k3u1fbpfcp-watermark.image" 
+width = "180" height = "400"/></p>
+<h3 id="四-粒子动画">四、粒子动画</h3>
+<h4 id="动画控制">动画控制</h4>
+<p>粒子的动画使用 <code>ValueAnimator</code> 来控制，可以自行定义 animator 来控制动画的行为，包括动画时长、Interpolater、重复、开始结束的监听等等。</p>
+<h4 id="粒子特效">粒子特效</h4>
+<p>目前仅支持粒子在运动过程中的旋转，如下。后续会增加更多效果</p>
+<p><img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/2e965bcfd21a42a7ab9fc23dedae21ef~tplv-k3u1fbpfcp-watermark.image" 
+width = "180" height = "400"/></p>
+<h4 id="粒子轨迹">粒子轨迹</h4>
+<p>粒子轨迹的控制使用 <code>IPathGenerator</code> 接口的派生类来完成。库中自带四种轨迹动画，分别是：</p>
+<ul>
+<li><code>ParticleAnimation.EXPLOSION</code>  爆炸💥效果</li>
+<li><code>ParticleAnimation.RISE</code> 粒子上升</li>
+<li><code>ParticleAnimation.FALL</code> 粒子下降</li>
+<li><code>ParticleAnimation.FIREWORK</code> 烟花🎇效果</li>
+</ul>
+<p>如果想要自定义粒子运动轨迹的话，可以继承  <code>IPathGenerator</code>  接口，复写生成粒子坐标的方法：</p>
+<pre><code class="language-kotlin">private fun createPathGenerator(): IPathGenerator {
+  // LinearPathGenerator 库中自带
+        return object : LinearPathGenerator() {
+            val cos = Random.nextDouble(-1.0, 1.0)
+            val sin = Random.nextDouble(-1.0, 1.0)
+
+            override fun getCurrentCoord(progress: Float, duration: Long): Pair&lt;Int, Int&gt; {
+              // 在这里写你想要的粒子轨迹
+                val originalX = distance * progress
+                val originalY = 100 * sin(originalX / 50)
+                val x = originalX * cos - originalY * sin
+                val y = originalX * sin + originalY * cos
+                return Pair((0.01 * x * originalY).toInt(), (0.008 * y * originalX).toInt())
+            }
+        }
+    }
+</code></pre>
+<p>然后把这个返回 <code>IPathGenerator</code> 的方法通过高阶函数的形式传入即可：</p>
+<pre><code class="language-kotlin">particleManager!!.colorFromView(button)
+                .particleNum(300)
+                .anchor(it)
+                .shape(Shape.CIRCLE, Shape.BITMAP)
+                .radius(8, 12)
+                .strokeWidth(10f)
+                .size(20, 20)
+                .rotation(Rotation(600))
+                .bitmap(R.drawable.ic_thumbs_up)
+                .anim(ParticleAnimation.with({
+                  // 控制动画的animator
+                    createAnimator()
+                }, {
+                  // 粒子运动的轨迹
+                    createPathGenerator()
+                })).start()
+</code></pre>
+<p>上述代码中的 <code>ParticleAnimation.with</code> 方法接受两个高阶函数分别生成动画控制和粒子轨迹。</p>
+<pre><code class="language-kotlin">fun with(animator: () -&gt; ValueAnimator = DEFAULT_ANIMATOR_LAMBDA,
+        generator: () -&gt; IPathGenerator): ParticleAnimation {
+    return ParticleAnimation(generator, animator)
+}
+</code></pre>
+<p>终于，经过上面的折腾，可以得到下面的酷炫动画：</p>
+<img src="https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/db9e8ec14de64b2796154a634936ce06~tplv-k3u1fbpfcp-watermark.image" width="360" height="800"/>
+<p>当然，只要你想要，可以构造出无限多的粒子动画轨迹，不过这可能要求一点数学功底🐶。</p>
+<p>在 https://github.com/ultimateHandsomeBoy666/Particle 目录下有一份我之前试验的比较酷炫的轨迹公式合集，可以参考。</p>
+<h3 id="五-注意事项">五、注意事项</h3>
+<ul>
+<li>粒子动画比较消耗内存和 CPU，所以粒子数目太多，比如超过 1000 的话，可能会有卡顿。</li>
+<li>默认在动画结束的时候，粒子是不会消失的。如果要让粒子在动画结束时消失，可以自定义 <code>ValueAnimator</code> 监听动画结束，在结束时调用 <code>ParticleManager.hide()</code> 方法来隐藏粒子。</li>
+<li>如果需要反复触发粒子动画，比如按一次按钮触发一次，可以使用一个全局的 <code>particleManager</code> 变量来启动和取消粒子动画，可以避免内存消耗和内存抖动。比如：</li>
+</ul>
+<pre><code class="language-kotlin">particleManager = Particles.with(this, container)
+button.setOnClickListener {
+        
+    particleManager!!.colorFromView(button)
+                      .particleNum(300)
+                      .anchor(it)
+                      .shape(Shape.CIRCLE, Shape.BITMAP)
+                      .radius(8, 12)
+                      .rotation(Rotation(600))
+                      .anim(ParticleAnimation.EXPLOSION)
+
+    particleManager!!.start()
+}
+</code></pre>
+<h3 id="六-最后">六、最后</h3>
+<p>这个项目暂时除了第一个版本，也是我自己第一个开源发布的项目，会花一些时间精力去维护。</p>
+<ul>
+<li>后续会增加更多粒子特效，比如粒子运动过程中的尺寸、透明度、颜色等改变</li>
+<li>再后续可能会出一份 compose 版本🐶</li>
+</ul>
+<p>最后，https://github.com/ultimateHandsomeBoy666/Particle 项目地址在这里，欢迎 fork、pr、issues、star，求求大家点个小星星吧✨❤️，感谢！</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[一文理解 onMeasure]]></title>
         <id>https://ultimateHandsomeBoy666.github.io/post/yi-wen-li-jie-onmeasure/</id>
@@ -2010,32 +2192,6 @@ https://github.com/elye/demo_android_architecture_components?source=post_page---
 
                     }
                 });
-</code></pre>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Android 退出登录，清空任务栈]]></title>
-        <id>https://ultimateHandsomeBoy666.github.io/post/android-tui-chu-deng-lu-qing-kong-ren-wu-zhan/</id>
-        <link href="https://ultimateHandsomeBoy666.github.io/post/android-tui-chu-deng-lu-qing-kong-ren-wu-zhan/">
-        </link>
-        <updated>2019-05-15T11:47:24.000Z</updated>
-        <content type="html"><![CDATA[<p>在项目中要实现用户退出登录的功能，当用户点击退出登录按钮后，跳转到登录页面的 Activity ，直接用 startActivity() 跳转，点击返回键后仍会回到退出前的 Activity 。</p>
-<p>如果使用下面这句代码给 intent 设置 Flag</p>
-<pre><code class="language-java">intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-</code></pre>
-<p>在第一次登录时有效，因为用户第一次登录时会在登录页面输入账号密码进行登录，然后跳转到主页面。这样在退出登录时，会回到之前经过的登录 Activity ，任务栈会将登录页面<br>
-Activity 之上的 Activity 全部清空，按返回键不会回到主页面。<br>
-但是在用户已经登录过之后，由于账号密码已经保存，不需要再次输入进行登录，不会经过登录 Activity ， 这样在退出登录后按返回键仍会返回到主页面。</p>
-<p>使用 FLAG_ACTIVITY_CLEAR_TASK ， FLAG_ACTIVITY_NEW_TASK 即可解决。代码如下：</p>
-<pre><code class="language-java">intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-</code></pre>
-<p><strong>注意是 addFlags() 不是 setFlags()</strong><br>
-谷歌官方文档提到， Intent.FLAG_ACTIVITY_CLEAR_TASK 要起作用，必须和 Intent.FLAG_ACTIVITY_NEW_TASK 配合使用。<br>
-这两个 Flag 可以将原有任务栈清空,并将 intent 的目标 Activity 作为任务栈的根 Activity 。任务栈的 Id 没有变，如下所示，也就是说，并没有开辟新的任务栈。</p>
-<pre><code>I/得到TaskId: 19959
-</code></pre>
-<pre><code>I/得到TaskId: 19959
 </code></pre>
 ]]></content>
     </entry>

@@ -1,0 +1,384 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>一个酷炫的 android 粒子动画库 | 牛蛙的博客</title>
+<link rel="shortcut icon" href="https://ultimateHandsomeBoy666.github.io//favicon.ico?v=1627315731669">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://ultimateHandsomeBoy666.github.io//styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="一个酷炫的 android 粒子动画库 | 牛蛙的博客 - Atom Feed" href="https://ultimateHandsomeBoy666.github.io//atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="一、灵感
+做这个粒子动画库的灵感来自于 MIUI 卸载应用时的动画：
+
+这个爆炸的粒子效果看起来很酷炫，而且粒子颜色是从 icon 中拿到的。
+最开始我简单实现了类似爆炸的效果，后来想到可以直接扩展一下，写一个通用的粒子动画库。
+二、使用
+..." />
+    <meta name="keywords" content="Android" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.6.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://ultimateHandsomeBoy666.github.io/">
+  <img class="avatar" src="https://ultimateHandsomeBoy666.github.io//images/avatar.png?v=1627315731669" alt="">
+  </a>
+  <h1 class="site-title">
+    牛蛙的博客
+  </h1>
+  <p class="site-description">
+    Hello!
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/ultimateHandsomeBoy666" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              一个酷炫的 android 粒子动画库
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-07-27
+              </span>
+              <span>
+                6 min read
+              </span>
+              
+                <a href="https://ultimateHandsomeBoy666.github.io/tag/byBHFmvUH/" class="post-tag">
+                  # Android
+                </a>
+              
+            </div>
+            
+              <img class="post-feature-image" src="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/16d1ba9ecb0d45418034ae8d0a367538~tplv-k3u1fbpfcp-watermark.image" alt="">
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h3 id="一-灵感">一、灵感</h3>
+<p>做这个粒子动画库的灵感来自于 MIUI 卸载应用时的动画：</p>
+<p><img src="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/1a5d408b323a4b1c97c57d1cb180f659~tplv-k3u1fbpfcp-watermark.image" 
+width = "180" height = "400"/></p>
+<p>这个爆炸的粒子效果看起来很酷炫，而且粒子颜色是从 icon 中拿到的。</p>
+<p>最开始我简单实现了类似爆炸的效果，后来想到可以直接扩展一下，写一个通用的粒子动画库。</p>
+<h3 id="二-使用">二、使用</h3>
+<p>项目地址：https://github.com/ultimateHandsomeBoy666/Particle</p>
+<p>Particle 是一个使用 kotlin 编写的粒子动画库，可以用几行代码轻松搞定一个粒子动画。同时也支持高度自定义的粒子动画轨迹，可以打造出非常炫酷的自定义动画。这个项目发布了 0.1 版本在 JitPack 上，按如下操作引入：</p>
+<p>在根目录的 <code>build.gradle</code> 中的 <code>allprojects</code> 中添加(注意不是 <code>buildScript</code>)：</p>
+<pre><code class="language-groovy">allprojects {
+	repositories {
+		...
+		maven { url 'https://jitpack.io' }
+	}
+}
+</code></pre>
+<p>然后在你的项目中引入依赖即可。</p>
+<pre><code class="language-gr">implementation 'com.github.ultimateHandsomeBoy666:Particle:0.1'
+</code></pre>
+<p>在引入了 Particle 之后，只需要下面几行简单的代码，就可以实现上面的粒子爆炸效果：</p>
+<pre><code class="language-kotlin">Particles.with(context, container) // container 是粒子动画的宿主父 ViewGroup
+		.colorFromView(button)// 从 button 中采样颜色
+		.particleNum(200)// 一共 200 个粒子
+		.anchor(button)// 把 button 作为动画的锚点
+		.shape(Shape.CIRCLE)// 粒子形状是圆形
+		.radius(2, 6)// 粒子随机半径 2~6
+		.anim(ParticleAnimation.EXPLOSION)// 使用爆炸动画
+		.start()
+</code></pre>
+<p><img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/da7082f52a674bafb5eeb86eb25de7c4~tplv-k3u1fbpfcp-watermark.image" 
+width = "180" height = "400"/></p>
+<h3 id="三-粒子形状">三、粒子形状</h3>
+<p>粒子的形状支持<strong>圆形、三角形、矩形、五角星以及矢量图形及位图，并且支持多种图形粒子混合</strong>。</p>
+<p>下面详细说明。</p>
+<h4 id="shapecircle-和-shapehollowcircle"><code>Shape.CIRCLE</code> 和 <code>Shape.HOLLOWCIRCLE</code></h4>
+<ul>
+<li>
+<p>圆形和空心圆</p>
+</li>
+<li>
+<p>使用 <code>radius</code>  定义圆的大小。空心圆使用 <code>strokeWidth</code> 定义粗细。</p>
+</li>
+</ul>
+<h4 id="shapetriangle-和-shapehollowtriangle"><code>Shape.TRIANGLE</code> 和 <code>Shape.HOLLOWTRIANGLE</code></h4>
+<ul>
+<li>
+<p>实心三角形和空心三角形</p>
+</li>
+<li>
+<p>使用 <code>width</code> 和 <code>height</code>  定义三角形的大小。空心三角形使用 <code>strokeWidth</code> 定义粗细。</p>
+</li>
+</ul>
+<h4 id="shaperectangle-和-shapehollowrectangle"><code>Shape.RECTANGLE</code> 和 <code>Shape.HOLLOWRECTANGLE</code></h4>
+<ul>
+<li>
+<p>实心矩形和空心矩形。</p>
+</li>
+<li>
+<p>使用 <code>width</code> 和 <code>height</code>  定义矩形的大小。空心矩形使用 <code>strokeWidth</code> 定义粗细。</p>
+</li>
+</ul>
+<h4 id="shapepentacle-和-shapehollowpentacle"><code>Shape.PENTACLE</code> 和 <code>Shape.HOLLOWPENTACLE</code></h4>
+<ul>
+<li>
+<p>实心五角星和空心五角星</p>
+</li>
+<li>
+<p>使用 <code>radius</code>  定义五角星外接圆的大小。空心五角星使用 <code>strokeWidth</code> 定义粗细。</p>
+</li>
+</ul>
+<h4 id="shapebitmap"><code>Shape.BITMAP</code></h4>
+<ul>
+<li>
+<p>支持位图。</p>
+</li>
+<li>
+<p>支持矢量图，只需要把矢量图 xml 的资源 id 传入即可。</p>
+</li>
+<li>
+<p>图片粒子不受 color 设置的影响。</p>
+</li>
+</ul>
+<p>除了上述单种图形以外，还支持多种图形的混合粒子，如下：</p>
+<p><img src="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/85bcaf99629243aaa897d3069b698e25~tplv-k3u1fbpfcp-watermark.image" 
+width = "180" height = "400"/></p>
+<h3 id="四-粒子动画">四、粒子动画</h3>
+<h4 id="动画控制">动画控制</h4>
+<p>粒子的动画使用 <code>ValueAnimator</code> 来控制，可以自行定义 animator 来控制动画的行为，包括动画时长、Interpolater、重复、开始结束的监听等等。</p>
+<h4 id="粒子特效">粒子特效</h4>
+<p>目前仅支持粒子在运动过程中的旋转，如下。后续会增加更多效果</p>
+<p><img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/2e965bcfd21a42a7ab9fc23dedae21ef~tplv-k3u1fbpfcp-watermark.image" 
+width = "180" height = "400"/></p>
+<h4 id="粒子轨迹">粒子轨迹</h4>
+<p>粒子轨迹的控制使用 <code>IPathGenerator</code> 接口的派生类来完成。库中自带四种轨迹动画，分别是：</p>
+<ul>
+<li><code>ParticleAnimation.EXPLOSION</code>  爆炸💥效果</li>
+<li><code>ParticleAnimation.RISE</code> 粒子上升</li>
+<li><code>ParticleAnimation.FALL</code> 粒子下降</li>
+<li><code>ParticleAnimation.FIREWORK</code> 烟花🎇效果</li>
+</ul>
+<p>如果想要自定义粒子运动轨迹的话，可以继承  <code>IPathGenerator</code>  接口，复写生成粒子坐标的方法：</p>
+<pre><code class="language-kotlin">private fun createPathGenerator(): IPathGenerator {
+  // LinearPathGenerator 库中自带
+        return object : LinearPathGenerator() {
+            val cos = Random.nextDouble(-1.0, 1.0)
+            val sin = Random.nextDouble(-1.0, 1.0)
+
+            override fun getCurrentCoord(progress: Float, duration: Long): Pair&lt;Int, Int&gt; {
+              // 在这里写你想要的粒子轨迹
+                val originalX = distance * progress
+                val originalY = 100 * sin(originalX / 50)
+                val x = originalX * cos - originalY * sin
+                val y = originalX * sin + originalY * cos
+                return Pair((0.01 * x * originalY).toInt(), (0.008 * y * originalX).toInt())
+            }
+        }
+    }
+</code></pre>
+<p>然后把这个返回 <code>IPathGenerator</code> 的方法通过高阶函数的形式传入即可：</p>
+<pre><code class="language-kotlin">particleManager!!.colorFromView(button)
+                .particleNum(300)
+                .anchor(it)
+                .shape(Shape.CIRCLE, Shape.BITMAP)
+                .radius(8, 12)
+                .strokeWidth(10f)
+                .size(20, 20)
+                .rotation(Rotation(600))
+                .bitmap(R.drawable.ic_thumbs_up)
+                .anim(ParticleAnimation.with({
+                  // 控制动画的animator
+                    createAnimator()
+                }, {
+                  // 粒子运动的轨迹
+                    createPathGenerator()
+                })).start()
+</code></pre>
+<p>上述代码中的 <code>ParticleAnimation.with</code> 方法接受两个高阶函数分别生成动画控制和粒子轨迹。</p>
+<pre><code class="language-kotlin">fun with(animator: () -&gt; ValueAnimator = DEFAULT_ANIMATOR_LAMBDA,
+        generator: () -&gt; IPathGenerator): ParticleAnimation {
+    return ParticleAnimation(generator, animator)
+}
+</code></pre>
+<p>终于，经过上面的折腾，可以得到下面的酷炫动画：</p>
+<img src="https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/db9e8ec14de64b2796154a634936ce06~tplv-k3u1fbpfcp-watermark.image" width="360" height="800"/>
+<p>当然，只要你想要，可以构造出无限多的粒子动画轨迹，不过这可能要求一点数学功底🐶。</p>
+<p>在 https://github.com/ultimateHandsomeBoy666/Particle 目录下有一份我之前试验的比较酷炫的轨迹公式合集，可以参考。</p>
+<h3 id="五-注意事项">五、注意事项</h3>
+<ul>
+<li>粒子动画比较消耗内存和 CPU，所以粒子数目太多，比如超过 1000 的话，可能会有卡顿。</li>
+<li>默认在动画结束的时候，粒子是不会消失的。如果要让粒子在动画结束时消失，可以自定义 <code>ValueAnimator</code> 监听动画结束，在结束时调用 <code>ParticleManager.hide()</code> 方法来隐藏粒子。</li>
+<li>如果需要反复触发粒子动画，比如按一次按钮触发一次，可以使用一个全局的 <code>particleManager</code> 变量来启动和取消粒子动画，可以避免内存消耗和内存抖动。比如：</li>
+</ul>
+<pre><code class="language-kotlin">particleManager = Particles.with(this, container)
+button.setOnClickListener {
+        
+    particleManager!!.colorFromView(button)
+                      .particleNum(300)
+                      .anchor(it)
+                      .shape(Shape.CIRCLE, Shape.BITMAP)
+                      .radius(8, 12)
+                      .rotation(Rotation(600))
+                      .anim(ParticleAnimation.EXPLOSION)
+
+    particleManager!!.start()
+}
+</code></pre>
+<h3 id="六-最后">六、最后</h3>
+<p>这个项目暂时除了第一个版本，也是我自己第一个开源发布的项目，会花一些时间精力去维护。</p>
+<ul>
+<li>后续会增加更多粒子特效，比如粒子运动过程中的尺寸、透明度、颜色等改变</li>
+<li>再后续可能会出一份 compose 版本🐶</li>
+</ul>
+<p>最后，https://github.com/ultimateHandsomeBoy666/Particle 项目地址在这里，欢迎 fork、pr、issues、star，求求大家点个小星星吧✨❤️，感谢！</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#%E4%B8%80-%E7%81%B5%E6%84%9F">一、灵感</a></li>
+<li><a href="#%E4%BA%8C-%E4%BD%BF%E7%94%A8">二、使用</a></li>
+<li><a href="#%E4%B8%89-%E7%B2%92%E5%AD%90%E5%BD%A2%E7%8A%B6">三、粒子形状</a>
+<ul>
+<li><a href="#shapecircle-%E5%92%8C-shapehollowcircle"><code>Shape.CIRCLE</code> 和 <code>Shape.HOLLOWCIRCLE</code></a></li>
+<li><a href="#shapetriangle-%E5%92%8C-shapehollowtriangle"><code>Shape.TRIANGLE</code> 和 <code>Shape.HOLLOWTRIANGLE</code></a></li>
+<li><a href="#shaperectangle-%E5%92%8C-shapehollowrectangle"><code>Shape.RECTANGLE</code> 和 <code>Shape.HOLLOWRECTANGLE</code></a></li>
+<li><a href="#shapepentacle-%E5%92%8C-shapehollowpentacle"><code>Shape.PENTACLE</code> 和 <code>Shape.HOLLOWPENTACLE</code></a></li>
+<li><a href="#shapebitmap"><code>Shape.BITMAP</code></a></li>
+</ul>
+</li>
+<li><a href="#%E5%9B%9B-%E7%B2%92%E5%AD%90%E5%8A%A8%E7%94%BB">四、粒子动画</a>
+<ul>
+<li><a href="#%E5%8A%A8%E7%94%BB%E6%8E%A7%E5%88%B6">动画控制</a></li>
+<li><a href="#%E7%B2%92%E5%AD%90%E7%89%B9%E6%95%88">粒子特效</a></li>
+<li><a href="#%E7%B2%92%E5%AD%90%E8%BD%A8%E8%BF%B9">粒子轨迹</a></li>
+</ul>
+</li>
+<li><a href="#%E4%BA%94-%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9">五、注意事项</a></li>
+<li><a href="#%E5%85%AD-%E6%9C%80%E5%90%8E">六、最后</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://ultimateHandsomeBoy666.github.io/post/yi-wen-li-jie-onmeasure/">
+              <h3 class="post-title">
+                一文理解 onMeasure
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://ultimateHandsomeBoy666.github.io//atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
